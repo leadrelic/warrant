@@ -4,6 +4,33 @@ from cryptography.fernet import Fernet
 
 
 class EncryptionDecryptionModule(cmd.Cmd):
+    """
+
+        EncryptionDecryptionModule Class
+
+        This class provides a command-line interface for encrypting, decrypting, and hashing messages.
+
+        Attributes:
+        - prompt: A string that specifies the command-line prompt.
+        - intro: A string that provides an introduction displayed when the module starts.
+
+        Methods:
+            do_encrypt(arg)
+                Encrypt a message.
+                Usage: encrypt <message>
+
+            do_decrypt(arg)
+                Decrypt a message.
+                Usage: decrypt <encrypted_message> <key>
+
+            do_hash(arg)
+                Generate a hash of the message.
+                Usage: hash <message> <algorithm>
+
+            do_quit(arg)
+                Return to the main menu.
+
+    """
     prompt = '(encryption) '
     intro = 'Encryption/Decryption Module. Type help or ? to list commands.\n'
 

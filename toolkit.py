@@ -10,6 +10,11 @@ from Modules.dictionary import PasswordDictionaryCreator
 
 
 def signal_handler(sig, frame):
+    """
+    :param sig: Signal number caught by the handler
+    :param frame: Current stack frame when the signal was caught
+    :return: None
+    """
     print('\nCaught interrupt signal, exiting...')
     sys.exit(0)
 
@@ -19,6 +24,35 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 class PentestTool(cmd.Cmd):
+    """
+    PentestTool class serves as the main command interpreter for the pentesting toolkit.
+
+    Attributes:
+        prompt (str): The command prompt format.
+        intro (str): Introduction message displayed when the tool starts.
+
+    Methods:
+        do_exit(arg):
+            Exits the program.
+
+        do_nmap(arg):
+            Switches to the Nmap module.
+
+        do_iptrace(arg):
+            Switches to the IP Trace module.
+
+        do_vulnscan(arg):
+            Switches to the Vulnerability Scanning module.
+
+        do_password_cracking(arg):
+            Switches to the Password Cracking module.
+
+        do_encryption_decryption(arg):
+            Switches to the Encryption/Decryption module.
+
+        do_dictionary_creator(arg):
+            Switches to the dictionary creator module.
+    """
     prompt = '(pentest) '
     intro = 'Welcome to the pentesting toolkit. Type help or ? to list commands.\n'
 

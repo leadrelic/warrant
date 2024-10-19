@@ -3,6 +3,12 @@ import cmd
 
 
 class IPTraceModule(cmd.Cmd):
+    """
+    IPTraceModule
+    =============
+
+    Class for IP trace module command line interface.
+    """
     prompt = '(iptrace) '
     intro = 'IP Trace Module. Type help or ? to list commands.\n'
 
