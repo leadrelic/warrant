@@ -3,6 +3,62 @@ import subprocess
 
 
 class NmapModule(cmd.Cmd):
+    """
+    A command-line module using the cmd framework that provides multiple nmap scanning functionalities.
+
+    class NmapModule
+        prompt: The prompt to display for user input within the NmapModule.
+        intro: The introduction message displayed when the module starts.
+
+        def do_quit(self, arg)
+            Return to the main menu and exit the Nmap Module.
+
+        def do_tcp_syn_scan(self, ip)
+            Perform a TCP SYN port scan.
+            Usage: tcp_syn_scan <target_ip>
+
+        def do_tcp_connect_scan(self, ip)
+            Perform a TCP connect() scan.
+            Usage: tcp_connect_scan <target_ip>
+
+        def do_udp_scan(self, ip)
+            Perform a UDP scan.
+            Usage: udp_scan <target_ip>
+
+        def do_tcp_ack_scan(self, ip)
+            Perform a TCP ACK scan.
+            Usage: tcp_ack_scan <target_ip>
+
+        def do_ping_sweep(self, ip)
+            Perform a ping sweep.
+            Usage: ping_sweep <target_ip_range>
+
+        def do_xmas_scan(self, ip)
+            Perform an XMAS scan.
+            Usage: xmas_scan <target_ip>
+
+        def do_null_scan(self, ip)
+            Perform a NULL scan.
+            Usage: null_scan <target_ip>
+
+        def do_fin_scan(self, ip)
+            Perform a FIN scan.
+            Usage: fin_scan <target_ip>
+
+        def do_os_fingerprinting(self, ip)
+            Perform OS fingerprinting.
+            Usage: os_fingerprinting <target_ip>
+
+        def do_version_detection(self, ip)
+            Perform version detection.
+            Usage: version_detection <target_ip>
+
+        def run_nmap(self, scan_type, ip)
+            Helper function to run nmap scans.
+            Args:
+                scan_type: The type of nmap scan to perform.
+                ip: The target IP address or range.
+    """
     prompt = '(nmap) '
     intro = 'Nmap module. Type help or ? to list commands.\n'
 

@@ -3,6 +3,15 @@ import cmd
 
 
 class PasswordDictionaryCreator(cmd.Cmd):
+    """
+    A command-line module enhancing password dictionary creation with advanced patterns and combinations.
+
+    class PasswordDictionaryCreator(cmd.Cmd):
+        prompt = '(password_dict_creator) '
+        intro = 'Enhanced Password Dictionary Creator Module. Type help or ? to list commands.\n'
+
+        def do_generate(self, arg):
+            """
     prompt = '(password_dict_creator) '
     intro = 'Enhanced Password Dictionary Creator Module. Type help or ? to list commands.\n'
 

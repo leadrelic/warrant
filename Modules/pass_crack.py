@@ -3,6 +3,30 @@ import cmd
 import time
 
 class PasswordCrackingModule(cmd.Cmd):
+    """
+    Class-based command-line interface for password cracking.
+
+    class PasswordCrackingModule(cmd.Cmd):
+        Command-line interactive module for cracking password hashes using dictionary attacks.
+
+    Attributes
+    ----------
+    prompt : str
+        Command prompt text displayed in the interactive module.
+    intro : str
+        Introductory text displayed when the module starts.
+    supported_algorithms : dict
+        Dictionary mapping algorithm names to their corresponding hashlib functions.
+
+    Methods
+    -------
+    do_crack_hash(arg)
+        Crack a hash using a dictionary attack.
+    do_quit(arg)
+        Return to the main menu.
+    crack_hash_with_dict(target_hash, dict_path, algorithm)
+        Attempt to crack the given hash using a dictionary file and the specified hashing algorithm.
+    """
     prompt = '(password_cracking) '
     intro = 'Password Cracking Module. Type help or ? to list commands.\n'
 

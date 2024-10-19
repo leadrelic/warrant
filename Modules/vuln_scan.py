@@ -3,6 +3,26 @@ import subprocess
 
 
 class VulnerabilityScanningModule(cmd.Cmd):
+    """
+        A command line interface (CLI) for vulnerability scanning using Nikto.
+
+        Attributes:
+            prompt (str): Command prompt string.
+            intro (str): Introduction message displayed when the module starts.
+
+        Methods:
+            do_scan(arg):
+                Scan a web server with Nikto: scan <URL>.
+                If no URL is specified, it prompts the user to provide one.
+
+            do_quit(arg):
+                Quit the Vulnerability Scanning Module.
+                Prints an exiting message and returns True to stop the command loop.
+
+            run_nikto_scan(url):
+                Run Nikto scan against a specified URL.
+                Constructs and runs the command using subprocess.
+    """
     prompt = '(vulnscan) '
     intro = 'Vulnerability Scanning module with Nikto. Type help or ? to list commands.\n'
 
