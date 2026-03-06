@@ -244,6 +244,15 @@ def _fuzzer_cmd(command: str, args: dict) -> List[str]:
     return []
 
 
+def _iptrace_cmd(command: str, args: dict) -> List[str]:
+    target = args.get('target', '')
+    if command == 'traceroute': return ['traceroute', target]
+    if command == 'mtr':        return ['mtr', '--report', '--report-cycles', '3', target]
+    if command == 'ping':       return ['ping', '-c', '5', target]
+    if command == 'whois':      return ['whois', target]
+    return ['traceroute', target]
+
+
 def _vulnscan_cmd(command: str, args: dict) -> List[str]:
     target = args.get('target', '')
     if command == 'nikto':        return ['nikto', '-h', target]
@@ -292,7 +301,8 @@ def _check_scope(target: str) -> tuple[bool, str]:
 
 def _tool_status() -> dict:
     tools = ['nmap', 'nikto', 'gobuster', 'ffuf', 'feroxbuster',
-             'subfinder', 'amass', 'dnsrecon', 'theHarvester', 'whois', 'dig']
+             'subfinder', 'amass', 'dnsrecon', 'theHarvester', 'whois', 'dig',
+             'traceroute', 'mtr']
     return {t: shutil.which(t) is not None for t in tools}
 
 
@@ -498,6 +508,7 @@ def api_run():
     elif module == 'osint':    cmd = _osint_cmd(command, args)
     elif module == 'fuzzer':   cmd = _fuzzer_cmd(command, args)
     elif module == 'vulnscan': cmd = _vulnscan_cmd(command, args)
+    elif module == 'iptrace':  cmd = _iptrace_cmd(command, args)
 
     desc = f"{module}/{command} {scope_target or args.get('url', '')}"
     job  = job_manager.create(desc, module)

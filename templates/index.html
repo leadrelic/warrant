@@ -76,6 +76,18 @@ header .eng-badge {
 header .eng-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
 header .eng-badge .dot.inactive { background: var(--border); }
 header .spacer { flex: 1; }
+.jobs-indicator {
+  display: none; align-items: center; gap: 6px;
+  background: var(--surface2); border: 1px solid var(--warning);
+  border-radius: 20px; padding: 3px 10px; font-size: 12px; color: var(--warning);
+}
+.jobs-indicator.visible { display: flex; }
+.jobs-indicator .spin {
+  width: 8px; height: 8px; border-radius: 50%;
+  border: 2px solid var(--warning); border-top-color: transparent;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 header .tools-btn {
   background: none; border: 1px solid var(--border); color: var(--text-dim);
   padding: 4px 10px; font-size: 12px; border-radius: 6px;
@@ -136,7 +148,9 @@ main {
 .term-dot.done    { background: var(--success); }
 .term-dot.error   { background: var(--danger); }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-#terminal {
+
+/* Unified terminal body — used on all module pages */
+.term-body {
   background: #010409; border: 1px solid var(--border); border-radius: 0 0 8px 8px;
   font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
   font-size: 12.5px; padding: 14px 16px; min-height: 260px; max-height: 480px;
@@ -149,6 +163,14 @@ main {
 .line-info    { color: var(--warning); }
 .line-done    { color: var(--success); margin-top: 8px; font-weight: 600; }
 .term-empty   { color: var(--text-dim); font-style: italic; }
+
+/* Copy button inside terminal header */
+.copy-btn {
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  padding: 2px 8px; font-size: 11px; border-radius: 4px; cursor: pointer;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.copy-btn.copied { color: var(--success); border-color: var(--success); }
 
 /* ── Dashboard stat cards ────────────────────────────────────── */
 .stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
@@ -177,6 +199,7 @@ main {
 .badge-info     { background:#27ae6022; color:var(--info-col); border:1px solid var(--info-col); }
 .badge-ok       { background:#3fb95022; color:var(--success);  border:1px solid var(--success);  }
 .badge-miss     { background:#f8514922; color:var(--danger);   border:1px solid var(--danger);   }
+.badge-running  { background:#d2992222; color:var(--warning);  border:1px solid var(--warning);  }
 
 /* ── Tables ──────────────────────────────────────────────────── */
 .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -203,6 +226,14 @@ main {
   color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 0 4px; }
 .scope-item .del:hover { color: var(--danger); }
 
+/* ── Quick-add finding banner ────────────────────────────────── */
+.add-finding-banner {
+  display: none; align-items: center; gap: 10px; margin-top: 10px;
+  padding: 9px 14px; background: #3fb95012; border: 1px solid var(--success);
+  border-radius: 6px; font-size: 13px; color: var(--success);
+}
+.add-finding-banner.visible { display: flex; }
+
 /* ── Misc ────────────────────────────────────────────────────── */
 .mt-8 { margin-top: 8px; }
 .mt-12 { margin-top: 12px; }
@@ -222,6 +253,10 @@ main {
 }
 .modal h3 { font-size: 15px; margin-bottom: 16px; }
 .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+code {
+  background: var(--surface2); padding: 2px 6px; border-radius: 4px;
+  font-family: monospace; font-size: 12px; color: var(--text);
+}
 </style>
 </head>
 <body>
@@ -234,6 +269,10 @@ main {
     <span class="dot inactive" id="eng-dot"></span>
     <span id="eng-label">No engagement</span>
   </div>
+  <div class="jobs-indicator" id="jobs-indicator">
+    <span class="spin"></span>
+    <span id="jobs-label">1 running</span>
+  </div>
   <div class="spacer"></div>
   <button class="tools-btn" onclick="nav('tools')">⚙ Tools</button>
 </header>
@@ -241,45 +280,48 @@ main {
 <!-- ── Sidebar ────────────────────────────────────────────────── -->
 <nav id="sidebar">
   <div class="nav-section">Overview</div>
-  <a href="#" onclick="nav('dashboard')" id="nav-dashboard" class="active">
+  <a href="#" onclick="return nav('dashboard')" id="nav-dashboard" class="active">
     <span class="icon">📊</span> Dashboard
   </a>
 
   <div class="nav-section" style="margin-top:8px">Engagement</div>
-  <a href="#" onclick="nav('engagement')" id="nav-engagement">
+  <a href="#" onclick="return nav('engagement')" id="nav-engagement">
     <span class="icon">🗂</span> Manage
   </a>
-  <a href="#" onclick="nav('findings')" id="nav-findings">
+  <a href="#" onclick="return nav('findings')" id="nav-findings">
     <span class="icon">🎯</span> Findings
   </a>
-  <a href="#" onclick="nav('reports')" id="nav-reports">
+  <a href="#" onclick="return nav('reports')" id="nav-reports">
     <span class="icon">📄</span> Reports
   </a>
 
   <div class="nav-section" style="margin-top:8px">Recon</div>
-  <a href="#" onclick="nav('osint')" id="nav-osint">
+  <a href="#" onclick="return nav('osint')" id="nav-osint">
     <span class="icon">🔍</span> OSINT
+  </a>
+  <a href="#" onclick="return nav('iptrace')" id="nav-iptrace">
+    <span class="icon">🌐</span> IP Trace
   </a>
 
   <div class="nav-section" style="margin-top:8px">Scanning</div>
-  <a href="#" onclick="nav('nmap')" id="nav-nmap">
+  <a href="#" onclick="return nav('nmap')" id="nav-nmap">
     <span class="icon">🗺</span> Nmap
   </a>
-  <a href="#" onclick="nav('vulnscan')" id="nav-vulnscan">
+  <a href="#" onclick="return nav('vulnscan')" id="nav-vulnscan">
     <span class="icon">🛡</span> Vuln Scan
   </a>
-  <a href="#" onclick="nav('fuzzer')" id="nav-fuzzer">
+  <a href="#" onclick="return nav('fuzzer')" id="nav-fuzzer">
     <span class="icon">💥</span> Fuzzer
   </a>
 
   <div class="nav-section" style="margin-top:8px">Credentials</div>
-  <a href="#" onclick="nav('password')" id="nav-password">
+  <a href="#" onclick="return nav('password')" id="nav-password">
     <span class="icon">🔓</span> Password
   </a>
 </nav>
 
 <!-- ── Main ───────────────────────────────────────────────────── -->
-<main>
+<main id="main-content">
 
 <!-- DASHBOARD ──────────────────────────────────────────────────── -->
 <div class="page active" id="page-dashboard">
@@ -390,13 +432,13 @@ main {
         <button class="btn-secondary" style="width:100%" onclick="generateReport('csv')">
           📊 Export CSV
         </button>
+        <div id="report-msg" class="mt-12"></div>
       </div>
       <div>
         <div class="card-title">Recent Reports</div>
         <div id="reports-list"><span class="empty">No reports yet.</span></div>
       </div>
     </div>
-    <div id="report-msg" class="mt-12"></div>
   </div>
 </div>
 
@@ -411,7 +453,7 @@ main {
         <label>Target domain or IP</label>
         <input id="osint-target" placeholder="example.com or 1.2.3.4">
       </div>
-      <div class="field" style="max-width:180px">
+      <div class="field" style="max-width:200px">
         <label>Tool</label>
         <select id="osint-tool">
           <option value="dns">DNS Records (built-in)</option>
@@ -435,12 +477,57 @@ main {
     <div class="terminal-header">
       <span class="term-dot" id="term-dot-osint"></span>
       <span class="term-title" id="term-title-osint">Waiting...</span>
+      <button class="copy-btn" onclick="copyTerminal('term-body-osint')" id="copy-osint">⧉ Copy</button>
     </div>
-    <div id="terminal" class="terminal-wrap" style="border-radius:0 0 8px 8px">
-      <div id="term-body" style="font-family:monospace;font-size:12.5px;padding:14px 16px;min-height:260px;max-height:480px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6;background:#010409;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px">
-        <span class="term-empty">Output will appear here when you run a tool.</span>
+    <div id="term-body-osint" class="term-body">
+      <span class="term-empty">Output will appear here when you run a tool.</span>
+    </div>
+  </div>
+  <div class="add-finding-banner" id="banner-osint">
+    Scan complete —
+    <button class="btn-secondary btn-sm" onclick="openFindingModal()">+ Add Finding</button>
+  </div>
+</div>
+
+<!-- IP TRACE ───────────────────────────────────────────────────── -->
+<div class="page" id="page-iptrace">
+  <div class="page-title">IP Trace</div>
+  <div class="page-sub">Trace network paths, ping hosts, and perform WHOIS lookups.</div>
+  <div class="card">
+    <div class="card-title">Trace Configuration</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Target (IP or hostname)</label>
+        <input id="trace-target" placeholder="8.8.8.8 or example.com">
+      </div>
+      <div class="field">
+        <label>Mode</label>
+        <select id="trace-type">
+          <option value="traceroute">traceroute — hop-by-hop path</option>
+          <option value="mtr">mtr — combined traceroute + ping</option>
+          <option value="ping">ping — reachability (5 packets)</option>
+          <option value="whois">whois — IP/domain registration info</option>
+        </select>
       </div>
     </div>
+    <div class="flex-row mt-8">
+      <button class="btn-primary" onclick="runIPTrace()">▶ Run</button>
+      <button class="btn-secondary" onclick="clearTerminal()">Clear</button>
+    </div>
+  </div>
+  <div class="terminal-wrap">
+    <div class="terminal-header">
+      <span class="term-dot" id="term-dot-iptrace"></span>
+      <span class="term-title" id="term-title-iptrace">Waiting...</span>
+      <button class="copy-btn" onclick="copyTerminal('term-body-iptrace')" id="copy-iptrace">⧉ Copy</button>
+    </div>
+    <div id="term-body-iptrace" class="term-body">
+      <span class="term-empty">Output will appear here when you run a trace.</span>
+    </div>
+  </div>
+  <div class="add-finding-banner" id="banner-iptrace">
+    Trace complete —
+    <button class="btn-secondary btn-sm" onclick="openFindingModal()">+ Add Finding</button>
   </div>
 </div>
 
@@ -480,10 +567,15 @@ main {
     <div class="terminal-header">
       <span class="term-dot" id="term-dot-nmap"></span>
       <span class="term-title" id="term-title-nmap">Waiting...</span>
+      <button class="copy-btn" onclick="copyTerminal('term-body-nmap')" id="copy-nmap">⧉ Copy</button>
     </div>
-    <div id="term-body-nmap" style="font-family:monospace;font-size:12.5px;padding:14px 16px;min-height:260px;max-height:480px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6;background:#010409;border:1px solid var(--border);border-radius:0 0 8px 8px">
+    <div id="term-body-nmap" class="term-body">
       <span class="term-empty">Output will appear here when you run a scan.</span>
     </div>
+  </div>
+  <div class="add-finding-banner" id="banner-nmap">
+    Scan complete —
+    <button class="btn-secondary btn-sm" onclick="openFindingModal()">+ Add Finding</button>
   </div>
 </div>
 
@@ -517,12 +609,17 @@ main {
   </div>
   <div class="terminal-wrap">
     <div class="terminal-header">
-      <span class="term-dot" id="term-dot-vuln"></span>
-      <span class="term-title" id="term-title-vuln">Waiting...</span>
+      <span class="term-dot" id="term-dot-vulnscan"></span>
+      <span class="term-title" id="term-title-vulnscan">Waiting...</span>
+      <button class="copy-btn" onclick="copyTerminal('term-body-vulnscan')" id="copy-vulnscan">⧉ Copy</button>
     </div>
-    <div id="term-body-vuln" style="font-family:monospace;font-size:12.5px;padding:14px 16px;min-height:260px;max-height:480px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6;background:#010409;border:1px solid var(--border);border-radius:0 0 8px 8px">
+    <div id="term-body-vulnscan" class="term-body">
       <span class="term-empty">Output will appear here.</span>
     </div>
+  </div>
+  <div class="add-finding-banner" id="banner-vulnscan">
+    Scan complete —
+    <button class="btn-secondary btn-sm" onclick="openFindingModal()">+ Add Finding</button>
   </div>
 </div>
 
@@ -575,42 +672,68 @@ main {
   </div>
   <div class="terminal-wrap">
     <div class="terminal-header">
-      <span class="term-dot" id="term-dot-fuzz"></span>
-      <span class="term-title" id="term-title-fuzz">Waiting...</span>
+      <span class="term-dot" id="term-dot-fuzzer"></span>
+      <span class="term-title" id="term-title-fuzzer">Waiting...</span>
+      <button class="copy-btn" onclick="copyTerminal('term-body-fuzzer')" id="copy-fuzzer">⧉ Copy</button>
     </div>
-    <div id="term-body-fuzz" style="font-family:monospace;font-size:12.5px;padding:14px 16px;min-height:260px;max-height:480px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6;background:#010409;border:1px solid var(--border);border-radius:0 0 8px 8px">
+    <div id="term-body-fuzzer" class="term-body">
       <span class="term-empty">Output will appear here.</span>
     </div>
+  </div>
+  <div class="add-finding-banner" id="banner-fuzzer">
+    Fuzz complete —
+    <button class="btn-secondary btn-sm" onclick="openFindingModal()">+ Add Finding</button>
   </div>
 </div>
 
 <!-- PASSWORD ────────────────────────────────────────────────────── -->
 <div class="page" id="page-password">
   <div class="page-title">Password Cracking</div>
-  <div class="page-sub">Use the CLI toolkit for full password cracking — run: <code style="background:var(--surface2);padding:2px 6px;border-radius:4px">python3 toolkit.py → password_cracking</code></div>
+  <div class="page-sub">Generate ready-to-run cracking commands for hashcat and John the Ripper.</div>
   <div class="card">
-    <div class="card-title">Quick Hash Crack via CLI</div>
-    <div class="alert alert-info">
-      💡 Password cracking is compute-intensive and works best in the terminal where you can see real-time progress. The commands below will launch it for you.
-    </div>
-    <div class="field mt-8"><label>Hash to crack</label>
-      <input id="pw-hash" placeholder="5f4dcc3b5aa765d61d8327deb882cf99" style="font-family:monospace"></div>
-    <div class="grid-2 mt-8">
+    <div class="card-title">Command Builder</div>
+    <div class="grid-2">
+      <div class="field"><label>Hash to crack</label>
+        <input id="pw-hash" placeholder="5f4dcc3b5aa765d61d8327deb882cf99" style="font-family:monospace"></div>
       <div class="field"><label>Algorithm</label>
         <select id="pw-algo">
-          <option>md5</option><option>sha1</option><option>sha256</option>
-          <option>sha512</option><option>sha3_256</option><option>ntlm</option>
+          <option value="md5">MD5</option>
+          <option value="sha1">SHA-1</option>
+          <option value="sha256">SHA-256</option>
+          <option value="sha512">SHA-512</option>
+          <option value="sha3_256">SHA3-256</option>
+          <option value="ntlm">NTLM</option>
+          <option value="bcrypt">bcrypt</option>
         </select>
       </div>
+    </div>
+    <div class="grid-2 mt-8">
       <div class="field"><label>Wordlist path</label>
         <input id="pw-wordlist" placeholder="/usr/share/wordlists/rockyou.txt"></div>
-    </div>
-    <div class="mt-12">
-      <div class="card-title">CLI Commands</div>
-      <div id="pw-cmd-output" style="background:var(--surface2);border-radius:6px;padding:12px;font-family:monospace;font-size:12px;color:var(--accent)">
-        → Enter hash and click Generate Command
+      <div class="field"><label>Attack mode</label>
+        <select id="pw-attack">
+          <option value="dictionary">Dictionary (wordlist)</option>
+          <option value="rules">Dictionary + rules</option>
+          <option value="brute">Brute force (mask)</option>
+        </select>
       </div>
-      <button class="btn-secondary mt-8" onclick="genPwCmd()">Generate Command</button>
+    </div>
+    <button class="btn-primary mt-12" onclick="genPwCmd()">Generate Commands</button>
+  </div>
+
+  <div class="card" id="pw-cmd-card" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin:0">Ready-to-run Commands</div>
+      <button class="copy-btn" onclick="copyEl('pw-cmd-output')">⧉ Copy</button>
+    </div>
+    <div id="pw-cmd-output" class="term-body" style="min-height:80px;border-radius:6px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">CLI Modules</div>
+    <div class="alert alert-info" style="margin-bottom:0">
+      💡 For interactive cracking sessions, run: <code>python3 toolkit.py</code> then type
+      <code>password_cracking</code> or <code>encryption_decryption</code> or <code>dictionary_creator</code>
     </div>
   </div>
 </div>
@@ -625,10 +748,10 @@ main {
   </div>
   <div class="card">
     <div class="card-title">Install Missing Tools</div>
-    <div style="font-size:13px;color:var(--text-dim);line-height:2">
-      <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--text)">sudo apt-get install nmap nikto gobuster ffuf feroxbuster seclists theharvester amass dnsrecon whois dnsutils</code><br>
-      <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--text)">pip3 install theHarvester dnsrecon --break-system-packages</code><br>
-      <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--text)">go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest</code>
+    <div style="font-size:13px;color:var(--text-dim);line-height:2.2">
+      <code>sudo apt-get install nmap nikto gobuster ffuf feroxbuster seclists theharvester amass dnsrecon whois dnsutils traceroute mtr</code><br>
+      <code>pip3 install theHarvester dnsrecon --break-system-packages</code><br>
+      <code>go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest</code>
     </div>
   </div>
 </div>
@@ -671,8 +794,8 @@ main {
 let state = {
   engagement: null,
   currentPage: 'dashboard',
-  activeStream: null,   // EventSource
-  currentTermPage: null,
+  activeStream: null,
+  activeJobCount: 0,
 };
 
 // ── Navigation ──────────────────────────────────────────────────────
@@ -684,6 +807,7 @@ function nav(page) {
   const link = document.getElementById('nav-' + page);
   if (link) link.classList.add('active');
   state.currentPage = page;
+  document.getElementById('main-content').scrollTop = 0;
   if (page === 'dashboard')  loadDashboard();
   if (page === 'engagement') loadEngagements();
   if (page === 'findings')   loadFindings();
@@ -698,6 +822,18 @@ async function api(method, path, body) {
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch('/api' + path, opts);
   return r.json();
+}
+
+// ── Job indicator in header ──────────────────────────────────────────
+function updateJobsIndicator() {
+  const el = document.getElementById('jobs-indicator');
+  const lbl = document.getElementById('jobs-label');
+  if (state.activeJobCount > 0) {
+    lbl.textContent = `${state.activeJobCount} running`;
+    el.classList.add('visible');
+  } else {
+    el.classList.remove('visible');
+  }
 }
 
 // ── Header / engagement badge ────────────────────────────────────────
@@ -739,7 +875,7 @@ async function loadDashboard() {
   if (s.recent_jobs && s.recent_jobs.length) {
     jEl.innerHTML = s.recent_jobs.map(j => `
       <div style="display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
-        <span class="badge badge-${j.status === 'done' ? 'ok' : j.status === 'error' ? 'miss' : 'medium'}">${j.status}</span>
+        <span class="badge badge-${j.status === 'done' ? 'ok' : j.status === 'error' ? 'miss' : 'running'}">${j.status}</span>
         <span style="font-size:12px;flex:1">${j.description}</span>
         <span style="font-size:11px;color:var(--text-dim)">${j.started_at.slice(11,19)}</span>
       </div>`).join('');
@@ -770,7 +906,6 @@ async function loadEngagements() {
       <button class="btn-secondary btn-sm" onclick="activateEngagement('${e.name}')">Load</button>
     </div>`).join('');
 
-  // If there's an active one, show detail card
   const active = engs.find(e => e.active);
   if (active) showEngDetail(active.name);
 }
@@ -810,9 +945,7 @@ async function showEngDetail(name) {
         ${e.finding_counts.critical||0} Crit · ${e.finding_counts.high||0} High · ${e.finding_counts.medium||0} Med
       </div>
     </div>`;
-  // Scope list
   renderScopeList(e.scope || [], name);
-  // Store current eng name for scope ops
   document.getElementById('eng-detail-card').dataset.eng = name;
 }
 
@@ -902,11 +1035,8 @@ async function submitFinding() {
 // ── Reports ──────────────────────────────────────────────────────────
 async function loadReports() {
   const eng = await api('GET', '/status');
-  if (!eng.engagement) {
-    document.getElementById('no-eng-warn').style.display = '';
-  } else {
-    document.getElementById('no-eng-warn').style.display = 'none';
-  }
+  updateHeader(eng);
+  document.getElementById('no-eng-warn').style.display = eng.engagement ? 'none' : '';
   const reports = await api('GET', '/reports');
   const el = document.getElementById('reports-list');
   if (!reports.length) { el.innerHTML = '<span class="empty">No reports generated yet.</span>'; return; }
@@ -925,45 +1055,55 @@ async function generateReport(fmt) {
   if (r.error) {
     msg.innerHTML = `<span style="color:var(--danger)">✗ ${r.error}</span>`;
   } else {
-    msg.innerHTML = `<span style="color:var(--success)">✓ Report saved: ${r.filename}
+    msg.innerHTML = `<span style="color:var(--success)">✓ Saved: ${r.filename}
       <a href="/api/reports/${r.filename}" target="_blank" style="margin-left:8px">Open ↗</a></span>`;
     loadReports();
   }
 }
 
 // ── Terminal helpers ──────────────────────────────────────────────────
-function getTermEl(page) {
-  const map = {
-    osint:    'term-body',
-    nmap:     'term-body-nmap',
-    vulnscan: 'term-body-vuln',
-    fuzzer:   'term-body-fuzz',
-  };
-  return document.getElementById(map[page] || 'term-body');
-}
-function getDotEl(page) {
-  const map = { osint:'term-dot-osint', nmap:'term-dot-nmap', vulnscan:'term-dot-vuln', fuzzer:'term-dot-fuzz' };
-  return document.getElementById(map[page] || 'term-dot-osint');
-}
-function getTitleEl(page) {
-  const map = { osint:'term-title-osint', nmap:'term-title-nmap', vulnscan:'term-title-vuln', fuzzer:'term-title-fuzz' };
-  return document.getElementById(map[page] || 'term-title-osint');
-}
+const termMap = {
+  osint:    'term-body-osint',
+  iptrace:  'term-body-iptrace',
+  nmap:     'term-body-nmap',
+  vulnscan: 'term-body-vulnscan',
+  fuzzer:   'term-body-fuzzer',
+};
+const dotMap = {
+  osint:    'term-dot-osint',
+  iptrace:  'term-dot-iptrace',
+  nmap:     'term-dot-nmap',
+  vulnscan: 'term-dot-vulnscan',
+  fuzzer:   'term-dot-fuzzer',
+};
+const titleMap = {
+  osint:    'term-title-osint',
+  iptrace:  'term-title-iptrace',
+  nmap:     'term-title-nmap',
+  vulnscan: 'term-title-vulnscan',
+  fuzzer:   'term-title-fuzzer',
+};
+
+function getTermEl(page)  { return document.getElementById(termMap[page]  || termMap.osint); }
+function getDotEl(page)   { return document.getElementById(dotMap[page]   || dotMap.osint); }
+function getTitleEl(page) { return document.getElementById(titleMap[page] || titleMap.osint); }
 
 function clearTerminal() {
   const el = getTermEl(state.currentPage);
   if (el) el.innerHTML = '<span class="term-empty">Cleared.</span>';
+  const dot = getDotEl(state.currentPage);
+  if (dot) dot.className = 'term-dot';
+  const banner = document.getElementById('banner-' + state.currentPage);
+  if (banner) banner.classList.remove('visible');
 }
 
 function appendToTerminal(termEl, text, type) {
-  // Remove placeholder
   const empty = termEl.querySelector('.term-empty');
   if (empty) empty.remove();
   const line = document.createElement('div');
   line.className = 'line-' + type;
-  line.style.fontFamily = 'inherit';
-  // Colour-code nmap/gobuster finds
-  if (type === 'output' && (text.includes('open') || text.match(/\[200\]|\[301\]|\[302\]/))) {
+  // Highlight open ports and successful finds in green
+  if (type === 'output' && (text.includes(' open ') || text.match(/\[200\]|\[301\]|\[302\]/))) {
     line.style.color = '#3fb950';
   } else if (type === 'output' && text.includes('filtered')) {
     line.style.color = '#8b949e';
@@ -975,19 +1115,26 @@ function appendToTerminal(termEl, text, type) {
 
 async function runJob(module, command, args, page) {
   if (state.activeStream) { state.activeStream.close(); }
-  const termEl   = getTermEl(page);
-  const dot      = getDotEl(page);
-  const titleEl  = getTitleEl(page);
+  const termEl  = getTermEl(page);
+  const dot     = getDotEl(page);
+  const titleEl = getTitleEl(page);
+  const banner  = document.getElementById('banner-' + page);
 
   termEl.innerHTML = '';
-  dot.className  = 'term-dot running';
+  if (banner) banner.classList.remove('visible');
+  dot.className = 'term-dot running';
   titleEl.textContent = `Running ${module}/${command}...`;
+
+  state.activeJobCount++;
+  updateJobsIndicator();
 
   const r = await api('POST', '/run', {module, command, args});
   if (r.error) {
     appendToTerminal(termEl, '✗ ' + r.error, 'error');
     dot.className = 'term-dot error';
     titleEl.textContent = 'Error';
+    state.activeJobCount = Math.max(0, state.activeJobCount - 1);
+    updateJobsIndicator();
     return;
   }
 
@@ -1004,6 +1151,9 @@ async function runJob(module, command, args, page) {
       const label    = msg.status === 'done' ? '✓ Done' : '✗ Error';
       appendToTerminal(termEl, label, msg.status === 'done' ? 'done' : 'error');
       titleEl.textContent = `${r.description} — ${msg.status}`;
+      if (banner && msg.status === 'done') banner.classList.add('visible');
+      state.activeJobCount = Math.max(0, state.activeJobCount - 1);
+      updateJobsIndicator();
       return;
     }
     appendToTerminal(termEl, msg.data, msg.type === 'error' ? 'error' : 'output');
@@ -1012,7 +1162,29 @@ async function runJob(module, command, args, page) {
     es.close();
     dot.className = 'term-dot error';
     appendToTerminal(termEl, '✗ Stream connection lost.', 'error');
+    state.activeJobCount = Math.max(0, state.activeJobCount - 1);
+    updateJobsIndicator();
   };
+}
+
+// ── Copy to clipboard ────────────────────────────────────────────────
+function copyTerminal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btn = document.getElementById('copy-' + id.replace('term-body-', ''));
+    if (btn) {
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '⧉ Copy'; btn.classList.remove('copied'); }, 2000);
+    }
+  });
+}
+
+function copyEl(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText);
 }
 
 // ── OSINT ────────────────────────────────────────────────────────────
@@ -1022,7 +1194,7 @@ document.getElementById('osint-tool').addEventListener('change', function() {
   if (tool === 'theharvester') {
     extra.innerHTML = '<div class="field"><label>Sources (comma-sep)</label><input id="osint-sources" value="google,bing,linkedin"></div>';
   } else if (tool === 'dnsrecon') {
-    extra.innerHTML = '<div class="field" style="max-width:200px"><label>Type</label><select id="osint-dns-type"><option value="std">std</option><option value="axfr">axfr (zone transfer)</option><option value="brt">brt (brute)</option></select></div>';
+    extra.innerHTML = '<div class="field" style="max-width:220px"><label>Type</label><select id="osint-dns-type"><option value="std">std</option><option value="axfr">axfr (zone transfer)</option><option value="brt">brt (brute)</option></select></div>';
   } else if (tool === 'dig') {
     extra.innerHTML = '<div class="field" style="max-width:160px"><label>Record type</label><select id="osint-rec"><option>A</option><option>AAAA</option><option>MX</option><option>NS</option><option>TXT</option><option>SOA</option><option value="ALL">ALL</option></select></div>';
   } else {
@@ -1048,6 +1220,14 @@ function runOSINT() {
     args.record_type = rEl ? rEl.value : 'A';
   }
   runJob('osint', tool, args, 'osint');
+}
+
+// ── IP Trace ──────────────────────────────────────────────────────────
+function runIPTrace() {
+  const target = document.getElementById('trace-target').value.trim();
+  const type   = document.getElementById('trace-type').value;
+  if (!target) { alert('Enter a target.'); return; }
+  runJob('iptrace', type, {target}, 'iptrace');
 }
 
 // ── Nmap ─────────────────────────────────────────────────────────────
@@ -1099,17 +1279,46 @@ function runFuzzer() {
   runJob('fuzzer', mode, args, 'fuzzer');
 }
 
-// ── Password helper ───────────────────────────────────────────────────
+// ── Password command builder ──────────────────────────────────────────
+const hashcatModes = {
+  md5: '0', sha1: '100', sha256: '1400', sha512: '1700',
+  sha3_256: '17300', ntlm: '1000', bcrypt: '3200',
+};
+
 function genPwCmd() {
-  const hash  = document.getElementById('pw-hash').value.trim();
-  const algo  = document.getElementById('pw-algo').value;
-  const wl    = document.getElementById('pw-wordlist').value.trim() || '/usr/share/wordlists/rockyou.txt';
-  const el    = document.getElementById('pw-cmd-output');
-  if (!hash) { el.textContent = '→ Enter a hash first.'; return; }
-  el.innerHTML =
-    `<div>python3 toolkit.py</div>
-     <div style="color:var(--text-dim)">(pentest) password_cracking</div>
-     <div>(crack) crack ${hash} ${wl} ${algo}</div>`;
+  const hash    = document.getElementById('pw-hash').value.trim();
+  const algo    = document.getElementById('pw-algo').value;
+  const wl      = document.getElementById('pw-wordlist').value.trim() || '/usr/share/wordlists/rockyou.txt';
+  const attack  = document.getElementById('pw-attack').value;
+  const card    = document.getElementById('pw-cmd-card');
+  const out     = document.getElementById('pw-cmd-output');
+
+  if (!hash) { alert('Enter a hash first.'); return; }
+
+  const mode = hashcatModes[algo] || '0';
+  let hcCmd, johnCmd;
+
+  if (attack === 'dictionary') {
+    hcCmd   = `hashcat -m ${mode} -a 0 '${hash}' ${wl}`;
+    johnCmd = `john --format=${algo} --wordlist=${wl} hash.txt`;
+  } else if (attack === 'rules') {
+    hcCmd   = `hashcat -m ${mode} -a 0 '${hash}' ${wl} -r /usr/share/hashcat/rules/best64.rule`;
+    johnCmd = `john --format=${algo} --wordlist=${wl} --rules=best64 hash.txt`;
+  } else {
+    hcCmd   = `hashcat -m ${mode} -a 3 '${hash}' ?a?a?a?a?a?a?a?a`;
+    johnCmd = `john --format=${algo} --incremental hash.txt`;
+  }
+
+  out.innerHTML =
+    `<div class="line-info"># hashcat</div>` +
+    `<div class="line-output">${hcCmd}</div>` +
+    `<div class="line-info" style="margin-top:10px"># john the ripper (save hash to hash.txt first)</div>` +
+    `<div class="line-output">echo '${hash}' > hash.txt</div>` +
+    `<div class="line-output">${johnCmd}</div>` +
+    `<div class="line-info" style="margin-top:10px"># or use the CLI toolkit:</div>` +
+    `<div class="line-output">python3 toolkit.py  →  password_cracking</div>`;
+
+  card.style.display = '';
 }
 
 // ── Tools page ────────────────────────────────────────────────────────
@@ -1131,6 +1340,24 @@ async function prefillWordlist() {
     document.getElementById('pw-wordlist').placeholder = s.default_wordlist;
   }
 }
+
+// ── Enter key bindings ────────────────────────────────��───────────────
+function onEnter(inputId, fn) {
+  const el = document.getElementById(inputId);
+  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') fn(); });
+}
+onEnter('osint-target',   runOSINT);
+onEnter('trace-target',   runIPTrace);
+onEnter('nmap-target',    runNmap);
+onEnter('vuln-target',    runVuln);
+onEnter('fuzz-url',       runFuzzer);
+onEnter('scope-add-input', addScope);
+onEnter('scope-check-input', checkScope);
+
+// ── Keyboard shortcut: Escape closes modal ───────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeFindingModal();
+});
 
 // ── Init ──────────────────────────────────────────────────────────────
 (async function init() {

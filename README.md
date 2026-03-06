@@ -9,6 +9,7 @@
 ║                                                              ║
 ║   Engagement Management • OSINT • Scanning • Fuzzing         ║
 ║   Password Cracking • Encryption • Professional Reports      ║
+║   CLI Interface  •  Browser-based Web GUI                    ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
@@ -16,11 +17,12 @@
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Educational-green.svg)](LICENSE)
 [![Modules](https://img.shields.io/badge/Modules-10-orange.svg)](#modules)
+[![Web GUI](https://img.shields.io/badge/Web_GUI-Flask-lightblue.svg)](#-web-gui)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-success.svg)](#)
 
-**A professional, modular CLI toolkit for authorized penetration testing and red team operations**
+**A professional, modular toolkit for authorized penetration testing — available as both a CLI and browser-based Web GUI**
 
-[Features](#-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Modules](#-modules) • [Workflow](#-professional-workflow)
+[Features](#-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Web GUI](#-web-gui) • [Modules](#-modules) • [Workflow](#-professional-workflow)
 
 </div>
 
@@ -32,8 +34,10 @@ v3.0 transforms this from a collection of scanning wrappers into a **professiona
 
 | Feature | Description |
 |---|---|
+| 🌐 **Web GUI** | Browser-based interface (`python3 server.py`) — run tools, view live output, manage engagements |
 | 🗂 **Engagement System** | Client info, scope definition, exclusion lists, findings tracker, full audit trail |
 | 🔍 **OSINT Module** | theHarvester, Subfinder, Amass, DNSRecon, Shodan API, crt.sh, whois |
+| 🌍 **IP Trace (GUI)** | traceroute, mtr, ping, whois — full network path analysis in the browser |
 | 💥 **Web Fuzzer** | gobuster, ffuf, feroxbuster integration + built-in Python fuzzer fallback |
 | 📊 **Report Generator** | Professional HTML/PDF/JSON/CSV reports from engagement findings |
 | 🧱 **BaseModule Architecture** | Shared base class — scope validation, finding logging, audit trail in every module |
@@ -112,8 +116,23 @@ go install github.com/ffuf/ffuf/v2@latest
 
 ## 🚀 Quick Start
 
+### CLI
 ```bash
 python3 toolkit.py
+```
+
+### Web GUI
+```bash
+python3 server.py
+# Opens http://127.0.0.1:5000 automatically
+```
+
+Optional flags:
+```bash
+python3 server.py --port 8080          # custom port
+python3 server.py --host 0.0.0.0       # expose on LAN (trusted networks only)
+python3 server.py --no-browser         # don't auto-open browser
+python3 server.py --debug              # Flask debug mode
 ```
 
 ### Professional Red Team Workflow
@@ -151,6 +170,41 @@ python3 toolkit.py
    (reporter) html                ← opens in browser
    (reporter) pdf                 ← professional PDF
 ```
+
+---
+
+## 🌐 Web GUI
+
+Launch a full browser-based interface alongside the CLI:
+
+```bash
+python3 server.py
+```
+
+The Web GUI provides live streaming terminal output (via SSE), engagement management, and one-click report generation — all without leaving the browser.
+
+| Page | What it does |
+|---|---|
+| **Dashboard** | Finding counts, recent jobs, installed tool status |
+| **Engagement → Manage** | Create/load engagements, define scope, scope checker |
+| **Engagement → Findings** | View all findings, add new findings manually |
+| **Engagement → Reports** | Generate HTML/PDF/JSON/CSV reports, download links |
+| **Recon → OSINT** | DNS, crt.sh, whois, Subfinder, theHarvester, Amass, DNSRecon, dig |
+| **Recon → IP Trace** | traceroute, mtr, ping, whois — live network path output |
+| **Scanning → Nmap** | 9 scan profiles including quick, full, stealth, vuln, OS, custom |
+| **Scanning → Vuln Scan** | Nikto, Nmap vuln scripts, SSL/TLS analysis, security headers |
+| **Scanning → Fuzzer** | gobuster (dir/dns/vhost), ffuf, feroxbuster |
+| **Credentials → Password** | Command builder for hashcat + John the Ripper |
+| **Tools** | See which tools are installed, install commands |
+
+**GUI features:**
+- Live streaming output — see results as they arrive
+- Scope enforcement — out-of-scope targets are blocked at the API layer
+- Copy button on every terminal panel
+- Enter key triggers scans (no need to click Run)
+- Running job indicator in the header
+- "Add Finding" shortcut banner appears when a scan finishes
+- All engagements, findings, and reports are shared with the CLI
 
 ---
 
@@ -361,6 +415,8 @@ The Engagement module's scope enforcement and audit trail are specifically desig
 - [ ] Burp Suite findings import
 - [ ] CVE lookup via NVD/CIRCL API
 - [ ] Automated recon pipeline (run all OSINT → scan → fuzz in one command)
+- [ ] Web GUI: stop running job from the browser
+- [ ] Web GUI: hashcat/john execution directly in the browser
 
 ### v3.2
 - [ ] Shodan Monitor integration
@@ -369,7 +425,7 @@ The Engagement module's scope enforcement and audit trail are specifically desig
 - [ ] Active Directory enumeration module
 
 ### v4.0
-- [ ] Web dashboard (FastAPI + React)
+- [ ] Web GUI authentication (local password protect)
 - [ ] Team collaboration (shared engagements)
 - [ ] Compliance mapping (PCI-DSS, HIPAA, ISO 27001)
 
