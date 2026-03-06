@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pentesters Toolkit v3.0</title>
+<style>
+/* ── Reset & Variables ──────────────────────────────────────── */
+:root {
+  --bg:        #0d1117;
+  --surface:   #161b22;
+  --surface2:  #21262d;
+  --surface3:  #2d333b;
+  --border:    #30363d;
+  --text:      #c9d1d9;
+  --text-dim:  #8b949e;
+  --accent:    #58a6ff;
+  --accent2:   #388bfd;
+  --success:   #3fb950;
+  --warning:   #d29922;
+  --danger:    #f85149;
+  --critical:  #c0392b;
+  --high:      #e74c3c;
+  --medium:    #e67e22;
+  --low:       #3498db;
+  --info-col:  #27ae60;
+  --sidebar-w: 210px;
+  --header-h:  52px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); font-size: 14px;
+  line-height: 1.5; overflow: hidden;
+}
+a { color: var(--accent); text-decoration: none; }
+input, select, textarea {
+  background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 6px; padding: 7px 10px; font-size: 13px; font-family: inherit;
+  outline: none; width: 100%;
+  transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+textarea { resize: vertical; min-height: 70px; }
+label { font-size: 12px; color: var(--text-dim); display: block; margin-bottom: 4px; }
+button {
+  cursor: pointer; border: none; border-radius: 6px; padding: 7px 14px;
+  font-size: 13px; font-weight: 500; transition: opacity .15s, transform .1s;
+}
+button:hover { opacity: .85; }
+button:active { transform: scale(.97); }
+.btn-primary   { background: var(--accent);   color: #fff; }
+.btn-success   { background: var(--success);  color: #fff; }
+.btn-danger    { background: var(--danger);   color: #fff; }
+.btn-secondary { background: var(--surface3); color: var(--text); border: 1px solid var(--border); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+
+/* ── Layout ─────────────────────────────────────────────────── */
+#app { display: flex; height: 100vh; }
+
+/* Header */
+header {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--header-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px;
+  z-index: 100; gap: 12px;
+}
+header .logo { font-weight: 700; font-size: 15px; color: var(--accent); white-space: nowrap; }
+header .logo span { color: var(--text-dim); font-weight: 400; font-size: 12px; margin-left: 6px; }
+header .eng-badge {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 3px 12px; font-size: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+header .eng-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+header .eng-badge .dot.inactive { background: var(--border); }
+header .spacer { flex: 1; }
+header .tools-btn {
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  padding: 4px 10px; font-size: 12px; border-radius: 6px;
+}
+
+/* Sidebar */
+nav {
+  position: fixed; top: var(--header-h); left: 0; bottom: 0;
+  width: var(--sidebar-w); background: var(--surface);
+  border-right: 1px solid var(--border); padding: 12px 0;
+  overflow-y: auto; z-index: 50;
+}
+.nav-section { padding: 8px 14px 4px; font-size: 11px; font-weight: 600;
+  color: var(--text-dim); text-transform: uppercase; letter-spacing: .8px; }
+nav a {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 16px; font-size: 13px; color: var(--text-dim);
+  transition: background .12s, color .12s; border-radius: 0;
+}
+nav a:hover { background: var(--surface2); color: var(--text); }
+nav a.active { background: var(--surface2); color: var(--accent); }
+nav a .icon { width: 16px; text-align: center; font-size: 14px; }
+
+/* Main content */
+main {
+  margin-top: var(--header-h); margin-left: var(--sidebar-w);
+  flex: 1; overflow-y: auto; padding: 24px 28px;
+  min-height: calc(100vh - var(--header-h));
+}
+
+/* ── Cards & Layout helpers ──────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+.page-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.page-sub   { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 18px 20px; margin-bottom: 16px;
+}
+.card-title { font-size: 13px; font-weight: 600; margin-bottom: 14px;
+  color: var(--text-dim); text-transform: uppercase; letter-spacing: .7px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.field   { display: flex; flex-direction: column; gap: 4px; }
+.flex-row { display: flex; gap: 10px; align-items: flex-end; }
+.flex-row .field { flex: 1; }
+
+/* ── Terminal ────────────────────────────────────────────────── */
+.terminal-wrap { margin-top: 16px; }
+.terminal-header {
+  background: var(--surface3); border: 1px solid var(--border); border-bottom: none;
+  border-radius: 8px 8px 0 0; padding: 8px 14px;
+  display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-dim);
+}
+.terminal-header .term-title { flex: 1; }
+.term-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+.term-dot.running { background: var(--warning); animation: pulse 1s infinite; }
+.term-dot.done    { background: var(--success); }
+.term-dot.error   { background: var(--danger); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+#terminal {
+  background: #010409; border: 1px solid var(--border); border-radius: 0 0 8px 8px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 12.5px; padding: 14px 16px; min-height: 260px; max-height: 480px;
+  overflow-y: auto; white-space: pre-wrap; word-break: break-all; line-height: 1.6;
+}
+.line-output  { color: #c9d1d9; }
+.line-cmd     { color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+.line-error   { color: var(--danger); }
+.line-success { color: var(--success); }
+.line-info    { color: var(--warning); }
+.line-done    { color: var(--success); margin-top: 8px; font-weight: 600; }
+.term-empty   { color: var(--text-dim); font-style: italic; }
+
+/* ── Dashboard stat cards ────────────────────────────────────── */
+.stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px 16px; text-align: center;
+}
+.stat-card .num { font-size: 26px; font-weight: 700; line-height: 1; }
+.stat-card .lbl { font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: .8px; margin-top: 4px; }
+.stat-critical .num { color: var(--critical); }
+.stat-high     .num { color: var(--high);     }
+.stat-medium   .num { color: var(--medium);   }
+.stat-low      .num { color: var(--low);      }
+.stat-info-f   .num { color: var(--info-col); }
+
+/* ── Badges ──────────────────────────────────────────────────── */
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px;
+}
+.badge-critical { background:#c0392b22; color:var(--critical); border:1px solid var(--critical); }
+.badge-high     { background:#e74c3c22; color:var(--high);     border:1px solid var(--high);     }
+.badge-medium   { background:#e67e2222; color:var(--medium);   border:1px solid var(--medium);   }
+.badge-low      { background:#3498db22; color:var(--low);      border:1px solid var(--low);      }
+.badge-info     { background:#27ae6022; color:var(--info-col); border:1px solid var(--info-col); }
+.badge-ok       { background:#3fb95022; color:var(--success);  border:1px solid var(--success);  }
+.badge-miss     { background:#f8514922; color:var(--danger);   border:1px solid var(--danger);   }
+
+/* ── Tables ──────────────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 600;
+  color: var(--text-dim); text-transform: uppercase; letter-spacing: .7px;
+  border-bottom: 1px solid var(--border); }
+.data-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+.data-table tr:hover td { background: var(--surface2); }
+.data-table tr:last-child td { border-bottom: none; }
+
+/* ── Tool pills ──────────────────────────────────────────────── */
+.tool-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.tool-pill { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+.tool-ok   { background:#3fb95022; color:var(--success); border:1px solid var(--success); }
+.tool-miss { background:#f8514922; color:var(--danger);  border:1px solid var(--danger);  }
+
+/* ── Scope list ──────────────────────────────────────────────── */
+.scope-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; background: var(--surface2); border-radius: 6px;
+  font-size: 13px; font-family: monospace; margin-bottom: 6px;
+}
+.scope-item .del { margin-left: auto; background: none; border: none;
+  color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 0 4px; }
+.scope-item .del:hover { color: var(--danger); }
+
+/* ── Misc ────────────────────────────────────────────────────── */
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.empty { color: var(--text-dim); font-style: italic; font-size: 13px; padding: 8px 0; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.alert { padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
+.alert-warn  { background: #d2992222; border: 1px solid var(--warning); color: var(--warning); }
+.alert-info  { background: #58a6ff22; border: 1px solid var(--accent);  color: var(--accent); }
+.modal-bg {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
+  z-index: 200; align-items: center; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 24px 28px; min-width: 420px; max-width: 560px; width: 100%;
+}
+.modal h3 { font-size: 15px; margin-bottom: 16px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ── Header ─────────────────────────────────────────────────── -->
+<header>
+  <span class="logo">🔒 PT Toolkit <span>v3.0</span></span>
+  <div class="eng-badge" id="eng-badge">
+    <span class="dot inactive" id="eng-dot"></span>
+    <span id="eng-label">No engagement</span>
+  </div>
+  <div class="spacer"></div>
+  <button class="tools-btn" onclick="nav('tools')">⚙ Tools</button>
+</header>
+
+<!-- ── Sidebar ────────────────────────────────────────────────── -->
+<nav id="sidebar">
+  <div class="nav-section">Overview</div>
+  <a href="#" onclick="nav('dashboard')" id="nav-dashboard" class="active">
+    <span class="icon">📊</span> Dashboard
+  </a>
+
+  <div class="nav-section" style="margin-top:8px">Engagement</div>
+  <a href="#" onclick="nav('engagement')" id="nav-engagement">
+    <span class="icon">🗂</span> Manage
+  </a>
+  <a href="#" onclick="nav('findings')" id="nav-findings">
+    <span class="icon">🎯</span> Findings
+  </a>
+  <a href="#" onclick="nav('reports')" id="nav-reports">
+    <span class="icon">📄</span> Reports
+  </a>
+
+  <div class="nav-section" style="margin-top:8px">Recon</div>
+  <a href="#" onclick="nav('osint')" id="nav-osint">
+    <span class="icon">🔍</span> OSINT
+  </a>
+
+  <div class="nav-section" style="margin-top:8px">Scanning</div>
+  <a href="#" onclick="nav('nmap')" id="nav-nmap">
+    <span class="icon">🗺</span> Nmap
+  </a>
+  <a href="#" onclick="nav('vulnscan')" id="nav-vulnscan">
+    <span class="icon">🛡</span> Vuln Scan
+  </a>
+  <a href="#" onclick="nav('fuzzer')" id="nav-fuzzer">
+    <span class="icon">💥</span> Fuzzer
+  </a>
+
+  <div class="nav-section" style="margin-top:8px">Credentials</div>
+  <a href="#" onclick="nav('password')" id="nav-password">
+    <span class="icon">🔓</span> Password
+  </a>
+</nav>
+
+<!-- ── Main ───────────────────────────────────────────────────── -->
+<main>
+
+<!-- DASHBOARD ──────────────────────────────────────────────────── -->
+<div class="page active" id="page-dashboard">
+  <div class="page-title">Dashboard</div>
+  <div class="page-sub" id="dash-sub">Loading...</div>
+  <div class="stat-grid" id="stat-grid">
+    <div class="stat-card stat-critical"><div class="num" id="s-critical">—</div><div class="lbl">Critical</div></div>
+    <div class="stat-card stat-high">    <div class="num" id="s-high">—</div>    <div class="lbl">High</div></div>
+    <div class="stat-card stat-medium">  <div class="num" id="s-medium">—</div>  <div class="lbl">Medium</div></div>
+    <div class="stat-card stat-low">     <div class="num" id="s-low">—</div>     <div class="lbl">Low</div></div>
+    <div class="stat-card stat-info-f">  <div class="num" id="s-info">—</div>    <div class="lbl">Info</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Recent Jobs</div>
+      <div id="recent-jobs"><span class="empty">No jobs yet.</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Installed Tools</div>
+      <div class="tool-grid" id="tool-grid"><span class="empty">Checking...</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ENGAGEMENT ─────────────────────────────────────────────────── -->
+<div class="page" id="page-engagement">
+  <div class="page-title">Engagement</div>
+  <div class="page-sub">Manage client, scope, and audit trail.</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">New Engagement</div>
+      <div class="field"><label>Engagement name (no spaces)</label>
+        <input id="eng-name" placeholder="acme-q1-2026"></div>
+      <div class="field mt-8"><label>Client / Organisation</label>
+        <input id="eng-client" placeholder="Acme Corp"></div>
+      <div class="field mt-8"><label>Tester name / team</label>
+        <input id="eng-tester" placeholder="Dakota"></div>
+      <div class="field mt-8"><label>In-scope targets (comma-separated IPs, CIDRs, domains)</label>
+        <input id="eng-scope" placeholder="10.10.10.0/24, *.acme.com"></div>
+      <div class="field mt-8"><label>Description / notes</label>
+        <textarea id="eng-desc" rows="2" placeholder="Rules of engagement..."></textarea></div>
+      <button class="btn-primary mt-12" onclick="createEngagement()">Create &amp; Activate</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Saved Engagements</div>
+      <div id="eng-list"><span class="empty">Loading...</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="eng-detail-card" style="display:none">
+    <div class="card-title" id="eng-detail-title">Active Engagement</div>
+    <div id="eng-detail-body"></div>
+    <hr class="divider">
+    <div class="card-title">Scope</div>
+    <div class="flex-row mt-8">
+      <div class="field"><input id="scope-add-input" placeholder="192.168.1.0/24 or *.domain.com"></div>
+      <button class="btn-secondary" onclick="addScope()">Add</button>
+    </div>
+    <div id="scope-list" class="mt-8"></div>
+    <hr class="divider">
+    <div class="flex-row">
+      <div class="field"><label>Check if in scope</label>
+        <input id="scope-check-input" placeholder="10.10.10.5"></div>
+      <button class="btn-secondary" onclick="checkScope()">Check</button>
+    </div>
+    <div id="scope-check-result" class="mt-8"></div>
+  </div>
+</div>
+
+<!-- FINDINGS ───────────────────────────────────────────────────── -->
+<div class="page" id="page-findings">
+  <div class="page-title">Findings</div>
+  <div class="page-sub">Track vulnerabilities and issues discovered during the engagement.</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="card-title" style="margin:0">All Findings</div>
+      <button class="btn-primary btn-sm" onclick="openFindingModal()">+ Add Finding</button>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Sev</th><th>Title</th><th>Affected</th><th>CVE</th><th>Source</th><th>Date</th></tr></thead>
+      <tbody id="findings-tbody"><tr><td colspan="6" class="empty" style="padding:12px">No findings yet.</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- REPORTS ────────────────────────────────────────────────────── -->
+<div class="page" id="page-reports">
+  <div class="page-title">Reports</div>
+  <div class="page-sub">Generate professional reports from engagement findings.</div>
+  <div class="card">
+    <div class="card-title">Generate Report</div>
+    <div id="no-eng-warn" class="alert alert-warn" style="display:none">
+      ⚠ No active engagement. Load or create one first.
+    </div>
+    <div class="grid-2">
+      <div>
+        <button class="btn-primary" style="width:100%;margin-bottom:8px" onclick="generateReport('html')">
+          📄 Generate HTML Report
+        </button>
+        <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="generateReport('pdf')">
+          🖨 Generate PDF Report
+        </button>
+        <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="generateReport('json')">
+          {} Export JSON
+        </button>
+        <button class="btn-secondary" style="width:100%" onclick="generateReport('csv')">
+          📊 Export CSV
+        </button>
+      </div>
+      <div>
+        <div class="card-title">Recent Reports</div>
+        <div id="reports-list"><span class="empty">No reports yet.</span></div>
+      </div>
+    </div>
+    <div id="report-msg" class="mt-12"></div>
+  </div>
+</div>
+
+<!-- OSINT ──────────────────────────────────────────────────────── -->
+<div class="page" id="page-osint">
+  <div class="page-title">OSINT</div>
+  <div class="page-sub">Passive and semi-passive reconnaissance.</div>
+  <div class="card">
+    <div class="card-title">Run OSINT Tool</div>
+    <div class="flex-row">
+      <div class="field">
+        <label>Target domain or IP</label>
+        <input id="osint-target" placeholder="example.com or 1.2.3.4">
+      </div>
+      <div class="field" style="max-width:180px">
+        <label>Tool</label>
+        <select id="osint-tool">
+          <option value="dns">DNS Records (built-in)</option>
+          <option value="crtsh">crt.sh — cert transparency</option>
+          <option value="whois">whois</option>
+          <option value="subfinder">Subfinder</option>
+          <option value="theharvester">theHarvester</option>
+          <option value="amass">Amass (passive)</option>
+          <option value="dnsrecon">DNSRecon</option>
+          <option value="dig">dig (single record)</option>
+        </select>
+      </div>
+    </div>
+    <div id="osint-extra" class="mt-8"></div>
+    <div class="flex-row mt-8">
+      <button class="btn-primary" onclick="runOSINT()">▶ Run</button>
+      <button class="btn-secondary" onclick="clearTerminal()">Clear</button>
+    </div>
+  </div>
+  <div class="terminal-wrap">
+    <div class="terminal-header">
+      <span class="term-dot" id="term-dot-osint"></span>
+      <span class="term-title" id="term-title-osint">Waiting...</span>
+    </div>
+    <div id="terminal" class="terminal-wrap" style="border-radius:0 0 8px 8px">
+      <div id="term-body" style="font-family:monospace;font-size:12.5px;padding:14px 16px;min-height:260px;max-height:480px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6;background:#010409;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px">
+        <span class="term-empty">Output will appear here when you run a tool.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NMAP ───────────────────────────────────────────────────────── -->
+<div class="page" id="page-nmap">
+  <div class="page-title">Nmap</div>
+  <div class="page-sub">Network mapping and port scanning.</div>
+  <div class="card">
+    <div class="card-title">Scan Configuration</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Target (IP, CIDR, hostname)</label>
+        <input id="nmap-target" placeholder="10.10.10.1 or 192.168.1.0/24">
+      </div>
+      <div class="field">
+        <label>Scan type</label>
+        <select id="nmap-type">
+          <option value="quick">Quick — Top 1000 ports, -sV -sC</option>
+          <option value="full">Full — All 65535 ports</option>
+          <option value="aggressive">Aggressive — -A (OS/version/scripts)</option>
+          <option value="stealth">Stealth — SYN scan, slow (requires sudo)</option>
+          <option value="vuln">Vuln — NSE vulnerability scripts</option>
+          <option value="udp">UDP — Top 100 UDP ports</option>
+          <option value="os">OS Detection</option>
+          <option value="ports">Custom ports</option>
+          <option value="custom">Custom flags</option>
+        </select>
+      </div>
+    </div>
+    <div id="nmap-extra" class="mt-8"></div>
+    <div class="flex-row mt-8">
+      <button class="btn-primary" onclick="runNmap()">▶ Run Scan</button>
+      <button class="btn-secondary" onclick="clearTerminal()">Clear</button>
+    </div>
+  </div>
+  <div class="terminal-wrap">
+    <div class="terminal-header">
+      <span class="term-dot" id="term-dot-nmap"></span>
+      <span class="term-title" id="term-title-nmap">Waiting...</span>
+    </div>
+    <div id="term-body-nmap" style="font-family:monospace;font-size:12.5px;padding:14px 16px;min-height:260px;max-height:480px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6;background:#010409;border:1px solid var(--border);border-radius:0 0 8px 8px">
+      <span class="term-empty">Output will appear here when you run a scan.</span>
+    </div>
+  </div>
+</div>
+
+<!-- VULN SCAN ──────────────────────────────────────────────────── -->
+<div class="page" id="page-vulnscan">
+  <div class="page-title">Vulnerability Scan</div>
+  <div class="page-sub">Web and network vulnerability assessment.</div>
+  <div class="card">
+    <div class="card-title">Scan Configuration</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Target (URL or IP)</label>
+        <input id="vuln-target" placeholder="http://10.10.10.1 or 10.10.10.1">
+      </div>
+      <div class="field">
+        <label>Scan type</label>
+        <select id="vuln-type">
+          <option value="nikto">Nikto — full web scan</option>
+          <option value="nikto_quick">Nikto — quick scan</option>
+          <option value="nmap_vuln">Nmap vuln scripts</option>
+          <option value="nmap_ssl">SSL/TLS analysis</option>
+          <option value="headers">Security headers (curl)</option>
+          <option value="ports">Common vuln ports</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex-row mt-8">
+      <button class="btn-primary" onclick="runVuln()">▶ Run Scan</button>
+      <button class="btn-secondary" onclick="clearTerminal()">Clear</button>
+    </div>
+  </div>
+  <div class="terminal-wrap">
+    <div class="terminal-header">
+      <span class="term-dot" id="term-dot-vuln"></span>
+      <span class="term-title" id="term-title-vuln">Waiting...</span>
+    </div>
+    <div id="term-body-vuln" style="font-family:monospace;font-size:12.5px;padding:14px 16px;min-height:260px;max-height:480px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6;background:#010409;border:1px solid var(--border);border-radius:0 0 8px 8px">
+      <span class="term-empty">Output will appear here.</span>
+    </div>
+  </div>
+</div>
+
+<!-- FUZZER ─────────────────────────────────────────────────────── -->
+<div class="page" id="page-fuzzer">
+  <div class="page-title">Web Fuzzer</div>
+  <div class="page-sub">Directory, DNS, and vhost discovery.</div>
+  <div class="card">
+    <div class="card-title">Fuzzer Configuration</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Target URL</label>
+        <input id="fuzz-url" placeholder="http://10.10.10.1/">
+      </div>
+      <div class="field">
+        <label>Mode</label>
+        <select id="fuzz-mode">
+          <option value="gobuster_dir">gobuster — directory</option>
+          <option value="gobuster_dns">gobuster — DNS</option>
+          <option value="gobuster_vhost">gobuster — vhosts</option>
+          <option value="ffuf">ffuf (use FUZZ in URL)</option>
+          <option value="feroxbuster">feroxbuster — recursive</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-2 mt-8">
+      <div class="field">
+        <label>Wordlist path</label>
+        <input id="fuzz-wordlist" placeholder="/usr/share/wordlists/dirb/common.txt">
+      </div>
+      <div class="field">
+        <label>Threads</label>
+        <input id="fuzz-threads" type="number" value="50" min="1" max="200">
+      </div>
+    </div>
+    <div class="grid-2 mt-8">
+      <div class="field">
+        <label>Extensions (comma-sep)</label>
+        <input id="fuzz-ext" value="php,html,txt,js,bak">
+      </div>
+      <div class="field">
+        <label>Status codes to match</label>
+        <input id="fuzz-codes" value="200,204,301,302,307,401,403">
+      </div>
+    </div>
+    <div class="flex-row mt-8">
+      <button class="btn-primary" onclick="runFuzzer()">▶ Run</button>
+      <button class="btn-secondary" onclick="clearTerminal()">Clear</button>
+    </div>
+  </div>
+  <div class="terminal-wrap">
+    <div class="terminal-header">
+      <span class="term-dot" id="term-dot-fuzz"></span>
+      <span class="term-title" id="term-title-fuzz">Waiting...</span>
+    </div>
+    <div id="term-body-fuzz" style="font-family:monospace;font-size:12.5px;padding:14px 16px;min-height:260px;max-height:480px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6;background:#010409;border:1px solid var(--border);border-radius:0 0 8px 8px">
+      <span class="term-empty">Output will appear here.</span>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD ────────────────────────────────────────────────────── -->
+<div class="page" id="page-password">
+  <div class="page-title">Password Cracking</div>
+  <div class="page-sub">Use the CLI toolkit for full password cracking — run: <code style="background:var(--surface2);padding:2px 6px;border-radius:4px">python3 toolkit.py → password_cracking</code></div>
+  <div class="card">
+    <div class="card-title">Quick Hash Crack via CLI</div>
+    <div class="alert alert-info">
+      💡 Password cracking is compute-intensive and works best in the terminal where you can see real-time progress. The commands below will launch it for you.
+    </div>
+    <div class="field mt-8"><label>Hash to crack</label>
+      <input id="pw-hash" placeholder="5f4dcc3b5aa765d61d8327deb882cf99" style="font-family:monospace"></div>
+    <div class="grid-2 mt-8">
+      <div class="field"><label>Algorithm</label>
+        <select id="pw-algo">
+          <option>md5</option><option>sha1</option><option>sha256</option>
+          <option>sha512</option><option>sha3_256</option><option>ntlm</option>
+        </select>
+      </div>
+      <div class="field"><label>Wordlist path</label>
+        <input id="pw-wordlist" placeholder="/usr/share/wordlists/rockyou.txt"></div>
+    </div>
+    <div class="mt-12">
+      <div class="card-title">CLI Commands</div>
+      <div id="pw-cmd-output" style="background:var(--surface2);border-radius:6px;padding:12px;font-family:monospace;font-size:12px;color:var(--accent)">
+        → Enter hash and click Generate Command
+      </div>
+      <button class="btn-secondary mt-8" onclick="genPwCmd()">Generate Command</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLS ──────────────────────────────────────────────────────── -->
+<div class="page" id="page-tools">
+  <div class="page-title">Tools &amp; Settings</div>
+  <div class="page-sub">Check which system tools are installed.</div>
+  <div class="card">
+    <div class="card-title">Installed Tools</div>
+    <div class="tool-grid" id="tool-grid-full"><span class="empty">Loading...</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Install Missing Tools</div>
+    <div style="font-size:13px;color:var(--text-dim);line-height:2">
+      <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--text)">sudo apt-get install nmap nikto gobuster ffuf feroxbuster seclists theharvester amass dnsrecon whois dnsutils</code><br>
+      <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--text)">pip3 install theHarvester dnsrecon --break-system-packages</code><br>
+      <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--text)">go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest</code>
+    </div>
+  </div>
+</div>
+
+</main><!-- end main -->
+</div><!-- end #app -->
+
+<!-- ── Add Finding Modal ─────────────────────────────────────────── -->
+<div class="modal-bg" id="finding-modal">
+  <div class="modal">
+    <h3>Add Finding</h3>
+    <div class="field"><label>Title *</label><input id="f-title" placeholder="SQL Injection in login form"></div>
+    <div class="grid-2 mt-8">
+      <div class="field"><label>Severity *</label>
+        <select id="f-severity">
+          <option value="critical">Critical</option><option value="high">High</option>
+          <option value="medium">Medium</option><option value="low">Low</option>
+          <option value="info">Info</option>
+        </select>
+      </div>
+      <div class="field"><label>Affected asset</label><input id="f-affected" placeholder="10.10.10.1:80"></div>
+    </div>
+    <div class="field mt-8"><label>Description</label>
+      <textarea id="f-desc" placeholder="Describe the vulnerability..."></textarea></div>
+    <div class="field mt-8"><label>Recommendation</label>
+      <textarea id="f-rec" placeholder="How to fix it..."></textarea></div>
+    <div class="field mt-8"><label>CVE (optional)</label><input id="f-cve" placeholder="CVE-2024-1234"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeFindingModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitFinding()">Add Finding</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── JavaScript ─────────────────────────────────────────────────── -->
+<script>
+'use strict';
+
+// ── State ───────────────────────────────────────────────────────────
+let state = {
+  engagement: null,
+  currentPage: 'dashboard',
+  activeStream: null,   // EventSource
+  currentTermPage: null,
+};
+
+// ── Navigation ──────────────────────────────────────────────────────
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  const link = document.getElementById('nav-' + page);
+  if (link) link.classList.add('active');
+  state.currentPage = page;
+  if (page === 'dashboard')  loadDashboard();
+  if (page === 'engagement') loadEngagements();
+  if (page === 'findings')   loadFindings();
+  if (page === 'reports')    loadReports();
+  if (page === 'tools')      loadToolsFull();
+  return false;
+}
+
+// ── API helpers ─────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = { method, headers: {'Content-Type': 'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch('/api' + path, opts);
+  return r.json();
+}
+
+// ── Header / engagement badge ────────────────────────────────────────
+function updateHeader(status) {
+  const dot   = document.getElementById('eng-dot');
+  const label = document.getElementById('eng-label');
+  if (status.engagement) {
+    dot.classList.remove('inactive');
+    label.textContent = status.engagement;
+    state.engagement  = status.engagement;
+  } else {
+    dot.classList.add('inactive');
+    label.textContent = 'No engagement';
+    state.engagement  = null;
+  }
+}
+
+// ── Dashboard ────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const s = await api('GET', '/status');
+  updateHeader(s);
+  const sub = document.getElementById('dash-sub');
+  if (s.engagement) {
+    sub.textContent = `Active: ${s.engagement} · ${s.client || ''}`;
+    const fc = s.finding_counts || {};
+    ['critical','high','medium','low','info'].forEach(k => {
+      const el = document.getElementById('s-' + k);
+      if (el) el.textContent = fc[k] || 0;
+    });
+  } else {
+    sub.textContent = 'No active engagement. Create or load one from Engagement.';
+    ['critical','high','medium','low','info'].forEach(k => {
+      const el = document.getElementById('s-' + k);
+      if (el) el.textContent = '—';
+    });
+  }
+  // Recent jobs
+  const jEl = document.getElementById('recent-jobs');
+  if (s.recent_jobs && s.recent_jobs.length) {
+    jEl.innerHTML = s.recent_jobs.map(j => `
+      <div style="display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
+        <span class="badge badge-${j.status === 'done' ? 'ok' : j.status === 'error' ? 'miss' : 'medium'}">${j.status}</span>
+        <span style="font-size:12px;flex:1">${j.description}</span>
+        <span style="font-size:11px;color:var(--text-dim)">${j.started_at.slice(11,19)}</span>
+      </div>`).join('');
+  }
+  // Tools
+  const tEl = document.getElementById('tool-grid');
+  if (s.tools) {
+    tEl.innerHTML = Object.entries(s.tools).map(([t, ok]) =>
+      `<span class="tool-pill ${ok ? 'tool-ok' : 'tool-miss'}">${ok ? '✓' : '✗'} ${t}</span>`
+    ).join('');
+  }
+}
+
+// ── Engagements ──────────────────────────────────────────────────────
+async function loadEngagements() {
+  const engs = await api('GET', '/engagements');
+  const list = document.getElementById('eng-list');
+  if (!engs.length) {
+    list.innerHTML = '<span class="empty">No saved engagements.</span>';
+    return;
+  }
+  list.innerHTML = engs.map(e => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${e.name} ${e.active ? '<span class="badge badge-ok">active</span>' : ''}</div>
+        <div style="font-size:12px;color:var(--text-dim)">${e.client} · ${e.findings} findings · ${e.started}</div>
+      </div>
+      <button class="btn-secondary btn-sm" onclick="activateEngagement('${e.name}')">Load</button>
+    </div>`).join('');
+
+  // If there's an active one, show detail card
+  const active = engs.find(e => e.active);
+  if (active) showEngDetail(active.name);
+}
+
+async function createEngagement() {
+  const name   = document.getElementById('eng-name').value.trim();
+  const client = document.getElementById('eng-client').value.trim();
+  const tester = document.getElementById('eng-tester').value.trim();
+  const scope  = document.getElementById('eng-scope').value.trim();
+  const desc   = document.getElementById('eng-desc').value.trim();
+  if (!name || !client || !tester) { alert('Name, client, and tester are required.'); return; }
+  const r = await api('POST', '/engagements', {name, client, tester, scope, description: desc});
+  if (r.error) { alert(r.error); return; }
+  updateHeader({engagement: name, client});
+  loadEngagements();
+  showEngDetail(name);
+}
+
+async function activateEngagement(name) {
+  await api('POST', `/engagements/${name}/activate`);
+  const s = await api('GET', '/status');
+  updateHeader(s);
+  loadEngagements();
+  showEngDetail(name);
+}
+
+async function showEngDetail(name) {
+  const e = await api('GET', `/engagements/${name}`);
+  document.getElementById('eng-detail-card').style.display = '';
+  document.getElementById('eng-detail-title').textContent = `Engagement: ${name}`;
+  document.getElementById('eng-detail-body').innerHTML = `
+    <div class="grid-2">
+      <div><span style="color:var(--text-dim);font-size:12px">Client</span><br>${e.client}</div>
+      <div><span style="color:var(--text-dim);font-size:12px">Tester</span><br>${e.tester}</div>
+      <div><span style="color:var(--text-dim);font-size:12px">Started</span><br>${e.start_date}</div>
+      <div><span style="color:var(--text-dim);font-size:12px">Findings</span><br>
+        ${e.finding_counts.critical||0} Crit · ${e.finding_counts.high||0} High · ${e.finding_counts.medium||0} Med
+      </div>
+    </div>`;
+  // Scope list
+  renderScopeList(e.scope || [], name);
+  // Store current eng name for scope ops
+  document.getElementById('eng-detail-card').dataset.eng = name;
+}
+
+function renderScopeList(scope, engName) {
+  const el = document.getElementById('scope-list');
+  if (!scope.length) { el.innerHTML = '<span class="empty">No scope defined — all targets allowed.</span>'; return; }
+  el.innerHTML = scope.map(s => `
+    <div class="scope-item">
+      <span>📍</span> ${s}
+      <button class="del" onclick="removeScope('${engName}', '${s}')">✕</button>
+    </div>`).join('');
+}
+
+async function addScope() {
+  const eng    = document.getElementById('eng-detail-card').dataset.eng;
+  const target = document.getElementById('scope-add-input').value.trim();
+  if (!target || !eng) return;
+  const r = await api('POST', `/engagements/${eng}/scope`, {target});
+  document.getElementById('scope-add-input').value = '';
+  renderScopeList(r.scope, eng);
+}
+
+async function removeScope(eng, target) {
+  const r = await api('DELETE', `/engagements/${eng}/scope/${target}`);
+  renderScopeList(r.scope, eng);
+}
+
+async function checkScope() {
+  const eng    = document.getElementById('eng-detail-card').dataset.eng;
+  const target = document.getElementById('scope-check-input').value.trim();
+  if (!target || !eng) return;
+  const r   = await api('GET', `/engagements/${eng}/check?target=${encodeURIComponent(target)}`);
+  const el  = document.getElementById('scope-check-result');
+  el.innerHTML = r.in_scope
+    ? `<span class="badge badge-ok">✓ IN SCOPE — ${target}</span>`
+    : `<span class="badge badge-miss">✗ OUT OF SCOPE — ${target}</span>`;
+}
+
+// ── Findings ──────────────────────────────────────────────────────────
+async function loadFindings() {
+  if (!state.engagement) {
+    document.getElementById('findings-tbody').innerHTML =
+      '<tr><td colspan="6" class="empty" style="padding:12px">No active engagement.</td></tr>';
+    return;
+  }
+  const findings = await api('GET', `/engagements/${state.engagement}/findings`);
+  const tbody = document.getElementById('findings-tbody');
+  if (!findings.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty" style="padding:12px">No findings yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = findings.map(f => `
+    <tr>
+      <td><span class="badge badge-${f.severity}">${f.severity}</span></td>
+      <td>${f.title}</td>
+      <td style="font-family:monospace;font-size:12px">${f.affected || '—'}</td>
+      <td style="font-size:12px">${f.cve || '—'}</td>
+      <td style="font-size:12px;color:var(--text-dim)">${f.source}</td>
+      <td style="font-size:12px;color:var(--text-dim)">${f.timestamp.slice(0,10)}</td>
+    </tr>`).join('');
+}
+
+function openFindingModal() {
+  if (!state.engagement) { alert('Load an engagement first.'); return; }
+  document.getElementById('finding-modal').classList.add('open');
+}
+function closeFindingModal() {
+  document.getElementById('finding-modal').classList.remove('open');
+}
+async function submitFinding() {
+  const title    = document.getElementById('f-title').value.trim();
+  const severity = document.getElementById('f-severity').value;
+  const affected = document.getElementById('f-affected').value.trim();
+  const desc     = document.getElementById('f-desc').value.trim();
+  const rec      = document.getElementById('f-rec').value.trim();
+  const cve      = document.getElementById('f-cve').value.trim();
+  if (!title) { alert('Title is required.'); return; }
+  const r = await api('POST', `/engagements/${state.engagement}/findings`,
+    {title, severity, affected, description: desc, recommendation: rec, cve: cve || null});
+  if (r.error) { alert(r.error); return; }
+  closeFindingModal();
+  ['f-title','f-affected','f-desc','f-rec','f-cve'].forEach(id =>
+    document.getElementById(id).value = '');
+  loadFindings();
+}
+
+// ── Reports ──────────────────────────────────────────────────────────
+async function loadReports() {
+  const eng = await api('GET', '/status');
+  if (!eng.engagement) {
+    document.getElementById('no-eng-warn').style.display = '';
+  } else {
+    document.getElementById('no-eng-warn').style.display = 'none';
+  }
+  const reports = await api('GET', '/reports');
+  const el = document.getElementById('reports-list');
+  if (!reports.length) { el.innerHTML = '<span class="empty">No reports generated yet.</span>'; return; }
+  el.innerHTML = reports.map(r => `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+      <span style="flex:1;font-family:monospace">${r.filename}</span>
+      <span style="color:var(--text-dim)">${r.modified}</span>
+      <a href="/api/reports/${r.filename}" target="_blank" class="badge badge-ok" style="text-decoration:none">Open</a>
+    </div>`).join('');
+}
+
+async function generateReport(fmt) {
+  const msg = document.getElementById('report-msg');
+  msg.innerHTML = `<span style="color:var(--warning)">⏳ Generating ${fmt.toUpperCase()} report...</span>`;
+  const r = await api('POST', '/report', {format: fmt});
+  if (r.error) {
+    msg.innerHTML = `<span style="color:var(--danger)">✗ ${r.error}</span>`;
+  } else {
+    msg.innerHTML = `<span style="color:var(--success)">✓ Report saved: ${r.filename}
+      <a href="/api/reports/${r.filename}" target="_blank" style="margin-left:8px">Open ↗</a></span>`;
+    loadReports();
+  }
+}
+
+// ── Terminal helpers ──────────────────────────────────────────────────
+function getTermEl(page) {
+  const map = {
+    osint:    'term-body',
+    nmap:     'term-body-nmap',
+    vulnscan: 'term-body-vuln',
+    fuzzer:   'term-body-fuzz',
+  };
+  return document.getElementById(map[page] || 'term-body');
+}
+function getDotEl(page) {
+  const map = { osint:'term-dot-osint', nmap:'term-dot-nmap', vulnscan:'term-dot-vuln', fuzzer:'term-dot-fuzz' };
+  return document.getElementById(map[page] || 'term-dot-osint');
+}
+function getTitleEl(page) {
+  const map = { osint:'term-title-osint', nmap:'term-title-nmap', vulnscan:'term-title-vuln', fuzzer:'term-title-fuzz' };
+  return document.getElementById(map[page] || 'term-title-osint');
+}
+
+function clearTerminal() {
+  const el = getTermEl(state.currentPage);
+  if (el) el.innerHTML = '<span class="term-empty">Cleared.</span>';
+}
+
+function appendToTerminal(termEl, text, type) {
+  // Remove placeholder
+  const empty = termEl.querySelector('.term-empty');
+  if (empty) empty.remove();
+  const line = document.createElement('div');
+  line.className = 'line-' + type;
+  line.style.fontFamily = 'inherit';
+  // Colour-code nmap/gobuster finds
+  if (type === 'output' && (text.includes('open') || text.match(/\[200\]|\[301\]|\[302\]/))) {
+    line.style.color = '#3fb950';
+  } else if (type === 'output' && text.includes('filtered')) {
+    line.style.color = '#8b949e';
+  }
+  line.textContent = text;
+  termEl.appendChild(line);
+  termEl.scrollTop = termEl.scrollHeight;
+}
+
+async function runJob(module, command, args, page) {
+  if (state.activeStream) { state.activeStream.close(); }
+  const termEl   = getTermEl(page);
+  const dot      = getDotEl(page);
+  const titleEl  = getTitleEl(page);
+
+  termEl.innerHTML = '';
+  dot.className  = 'term-dot running';
+  titleEl.textContent = `Running ${module}/${command}...`;
+
+  const r = await api('POST', '/run', {module, command, args});
+  if (r.error) {
+    appendToTerminal(termEl, '✗ ' + r.error, 'error');
+    dot.className = 'term-dot error';
+    titleEl.textContent = 'Error';
+    return;
+  }
+
+  titleEl.textContent = r.description;
+  const es = new EventSource(`/api/stream/${r.job_id}`);
+  state.activeStream = es;
+
+  es.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    if (msg.type === 'ping') return;
+    if (msg.type === 'done') {
+      es.close();
+      dot.className  = msg.status === 'done' ? 'term-dot done' : 'term-dot error';
+      const label    = msg.status === 'done' ? '✓ Done' : '✗ Error';
+      appendToTerminal(termEl, label, msg.status === 'done' ? 'done' : 'error');
+      titleEl.textContent = `${r.description} — ${msg.status}`;
+      return;
+    }
+    appendToTerminal(termEl, msg.data, msg.type === 'error' ? 'error' : 'output');
+  };
+  es.onerror = () => {
+    es.close();
+    dot.className = 'term-dot error';
+    appendToTerminal(termEl, '✗ Stream connection lost.', 'error');
+  };
+}
+
+// ── OSINT ────────────────────────────────────────────────────────────
+document.getElementById('osint-tool').addEventListener('change', function() {
+  const extra = document.getElementById('osint-extra');
+  const tool  = this.value;
+  if (tool === 'theharvester') {
+    extra.innerHTML = '<div class="field"><label>Sources (comma-sep)</label><input id="osint-sources" value="google,bing,linkedin"></div>';
+  } else if (tool === 'dnsrecon') {
+    extra.innerHTML = '<div class="field" style="max-width:200px"><label>Type</label><select id="osint-dns-type"><option value="std">std</option><option value="axfr">axfr (zone transfer)</option><option value="brt">brt (brute)</option></select></div>';
+  } else if (tool === 'dig') {
+    extra.innerHTML = '<div class="field" style="max-width:160px"><label>Record type</label><select id="osint-rec"><option>A</option><option>AAAA</option><option>MX</option><option>NS</option><option>TXT</option><option>SOA</option><option value="ALL">ALL</option></select></div>';
+  } else {
+    extra.innerHTML = '';
+  }
+});
+
+function runOSINT() {
+  const target = document.getElementById('osint-target').value.trim();
+  const tool   = document.getElementById('osint-tool').value;
+  if (!target) { alert('Enter a target.'); return; }
+  const args = { target };
+  if (tool === 'theharvester') {
+    const srcEl = document.getElementById('osint-sources');
+    args.sources = srcEl ? srcEl.value : 'google,bing';
+  }
+  if (tool === 'dnsrecon') {
+    const tEl = document.getElementById('osint-dns-type');
+    args.type = tEl ? tEl.value : 'std';
+  }
+  if (tool === 'dig') {
+    const rEl = document.getElementById('osint-rec');
+    args.record_type = rEl ? rEl.value : 'A';
+  }
+  runJob('osint', tool, args, 'osint');
+}
+
+// ── Nmap ─────────────────────────────────────────────────────────────
+document.getElementById('nmap-type').addEventListener('change', function() {
+  const extra = document.getElementById('nmap-extra');
+  if (this.value === 'ports') {
+    extra.innerHTML = '<div class="field" style="max-width:200px"><label>Port range</label><input id="nmap-ports" value="1-1024"></div>';
+  } else if (this.value === 'custom') {
+    extra.innerHTML = '<div class="field"><label>Custom nmap flags</label><input id="nmap-flags" placeholder="-sV -p 80,443 --script http-title"></div>';
+  } else {
+    extra.innerHTML = '';
+  }
+});
+
+function runNmap() {
+  const target = document.getElementById('nmap-target').value.trim();
+  const type   = document.getElementById('nmap-type').value;
+  if (!target) { alert('Enter a target.'); return; }
+  const args = { target };
+  if (type === 'ports') {
+    const p = document.getElementById('nmap-ports');
+    args.ports = p ? p.value : '1-1024';
+  }
+  if (type === 'custom') {
+    const f = document.getElementById('nmap-flags');
+    args.flags = f ? f.value : '';
+  }
+  runJob('nmap', type, args, 'nmap');
+}
+
+// ── Vuln Scan ─────────────────────────────────────────────────────────
+function runVuln() {
+  const target = document.getElementById('vuln-target').value.trim();
+  const type   = document.getElementById('vuln-type').value;
+  if (!target) { alert('Enter a target.'); return; }
+  runJob('vulnscan', type, {target}, 'vulnscan');
+}
+
+// ── Fuzzer ────────────────────────────────────────────────────────────
+function runFuzzer() {
+  const url      = document.getElementById('fuzz-url').value.trim();
+  const mode     = document.getElementById('fuzz-mode').value;
+  const wordlist = document.getElementById('fuzz-wordlist').value.trim();
+  const threads  = document.getElementById('fuzz-threads').value;
+  const ext      = document.getElementById('fuzz-ext').value.trim();
+  const codes    = document.getElementById('fuzz-codes').value.trim();
+  if (!url) { alert('Enter a target URL.'); return; }
+  const args = { url, wordlist, threads: parseInt(threads), extensions: ext, status_codes: codes };
+  runJob('fuzzer', mode, args, 'fuzzer');
+}
+
+// ── Password helper ───────────────────────────────────────────────────
+function genPwCmd() {
+  const hash  = document.getElementById('pw-hash').value.trim();
+  const algo  = document.getElementById('pw-algo').value;
+  const wl    = document.getElementById('pw-wordlist').value.trim() || '/usr/share/wordlists/rockyou.txt';
+  const el    = document.getElementById('pw-cmd-output');
+  if (!hash) { el.textContent = '→ Enter a hash first.'; return; }
+  el.innerHTML =
+    `<div>python3 toolkit.py</div>
+     <div style="color:var(--text-dim)">(pentest) password_cracking</div>
+     <div>(crack) crack ${hash} ${wl} ${algo}</div>`;
+}
+
+// ── Tools page ────────────────────────────────────────────────────────
+async function loadToolsFull() {
+  const s  = await api('GET', '/status');
+  const el = document.getElementById('tool-grid-full');
+  if (s.tools) {
+    el.innerHTML = Object.entries(s.tools).map(([t, ok]) =>
+      `<span class="tool-pill ${ok ? 'tool-ok' : 'tool-miss'}">${ok ? '✓' : '✗'} ${t}</span>`
+    ).join('');
+  }
+}
+
+// ── Prefill wordlist ──────────────────────────────────────────────────
+async function prefillWordlist() {
+  const s = await api('GET', '/status');
+  if (s.default_wordlist) {
+    document.getElementById('fuzz-wordlist').value = s.default_wordlist;
+    document.getElementById('pw-wordlist').placeholder = s.default_wordlist;
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+(async function init() {
+  await loadDashboard();
+  await prefillWordlist();
+})();
+</script>
+</body>
+</html>
