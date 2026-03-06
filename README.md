@@ -433,7 +433,7 @@ The Engagement module's scope enforcement and audit trail are specifically desig
 
 ## 📜 License
 
-MIT License — Copyright (c) 2026 Dakota (@leadrelic)
+MIT License — Copyright (c) 2026  (@leadrelic)
 
 For educational and authorized security testing purposes only.
 
