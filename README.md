@@ -49,26 +49,26 @@ v3.0 transforms this from a collection of scanning wrappers into a **professiona
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Engagement Management     │  OSINT & Recon                  │
-│  • Client & scope tracking │  • theHarvester (emails/hosts)  │
-│  • Findings database       │  • Subfinder (subdomains)       │
-│  • Severity classification │  • Amass (deep enumeration)     │
-│  • Audit trail (every cmd) │  • DNSRecon (DNS records)       │
-│  • Evidence directory      │  • Shodan API integration       │
-│  • Scope enforcement       │  • crt.sh (cert transparency)   │
-│                            │                                  │
-│  Web Fuzzing               │  Reporting                      │
-│  • gobuster (dir/dns/vhost)│  • Professional HTML reports    │
-│  • ffuf (param/dir fuzzing)│  • PDF export (weasyprint)      │
-│  • feroxbuster (recursive) │  • JSON findings export         │
-│  • Built-in Python fuzzer  │  • CSV spreadsheet export       │
-│  • vhost enumeration       │  • Executive summary            │
-│                            │                                  │
-│  Network Scanning          │  Password & Crypto              │
-│  • Nmap (15+ scan types)   │  • Dictionary attacks           │
-│  • Vuln assessment (Nikto) │  • Brute force + hybrid         │
-│  • IP geolocation/OSINT    │  • AES-256 / Fernet encryption  │
-│  • Scan profiles           │  • 12+ hash algorithms          │
+│  Engagement Management     │  OSINT & Recon                 │
+│  • Client & scope tracking │  • theHarvester (emails/hosts) │
+│  • Findings database       │  • Subfinder (subdomains)      │
+│  • Severity classification │  • Amass (deep enumeration)    │
+│  • Audit trail (every cmd) │  • DNSRecon (DNS records)      │
+│  • Evidence directory      │  • Shodan API integration      │
+│  • Scope enforcement       │  • crt.sh (cert transparency)  │
+│                            │                                │
+│  Web Fuzzing               │  Reporting                     │
+│  • gobuster (dir/dns/vhost)│  • Professional HTML reports   │
+│  • ffuf (param/dir fuzzing)│  • PDF export (weasyprint)     │
+│  • feroxbuster (recursive) │  • JSON findings export        │
+│  • Built-in Python fuzzer  │  • CSV spreadsheet export      │
+│  • vhost enumeration       │  • Executive summary           │
+│                            │                                │
+│  Network Scanning          │  Password & Crypto             │
+│  • Nmap (15+ scan types)   │  • Dictionary attacks          │
+│  • Vuln assessment (Nikto) │  • Brute force + hybrid        │
+│  • IP geolocation/OSINT    │  • AES-256 / Fernet encryption │
+│  • Scan profiles           │  • 12+ hash algorithms         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
