@@ -5,7 +5,7 @@
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║        🛡️  PROFESSIONAL RED TEAM TOOLKIT  🛡️                ║
+║        🛡️  PROFESSIONAL RED TEAM TOOLKIT  🛡️                  ║
 ║                                                              ║
 ║   Engagement Management • OSINT • Scanning • Fuzzing         ║
 ║   Password Cracking • Encryption • Professional Reports      ║
