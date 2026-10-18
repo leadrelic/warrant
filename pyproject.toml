@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "warrant"
+version = "4.0.0"
+description = "Scope-enforcing pentest toolkit: every tool run is authorized against the engagement scope, audited and turned into findings."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+web = ["flask>=3.0"]
+pdf = ["weasyprint>=60"]
+
+[project.scripts]
+warrant = "warrant.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["warrant*"]
+
+[tool.setuptools.package-data]
+"warrant.web" = ["static/*"]
