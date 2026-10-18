@@ -203,7 +203,8 @@ def create_app(token=None, manager=None):
         d = request.get_json(silent=True) or {}
         try:
             eng = Engagement.create(d.get("name", ""), client=d.get("client", ""), tester=d.get("tester", ""),
-                                    description=d.get("description", ""), end_date=d.get("end_date", ""))
+                                    description=d.get("description", ""), start_date=d.get("start_date", ""),
+                                    end_date=d.get("end_date", ""))
             for s in d.get("scope") or []:
                 eng.add_scope(s)
             for s in d.get("exclude") or []:

@@ -7,7 +7,7 @@ Python 3.9+. No dependencies for the CLI; `flask` for the GUI, `weasyprint` for 
 ```bash
 pip install -e ".[web]"          # or just: python -m warrant ...
 
-warrant new acme --client "Acme Corp" --tester me --scope 10.10.10.0/24 --scope example.com --exclude 10.10.10.1
+warrant new acme --client "Acme Corp" --tester me --start 2026-11-01 --end 2026-11-14 --scope 10.10.10.0/24 --scope example.com --exclude 10.10.10.1
 warrant scope check 10.10.10.5 8.8.8.8
 warrant run nmap 10.10.10.0/24 profile=quick
 warrant run nuclei https://app.example.com severity=high,critical
@@ -20,9 +20,9 @@ warrant serve                     # web GUI
 
 | Piece | Behavior |
 |---|---|
-| **Scope** | IPs, CIDRs, `a.b.c.d-e` ranges, domains (`example.com` covers subdomains). Hostnames are resolved and every address must be in scope and outside the exclusions. Networks must be fully inside scope. No scope defined means everything is blocked. Domains that resolve outside your listed networks (CDNs) raise a warning. |
+| **Scope** | IPs, CIDRs, `a.b.c.d-e` ranges, domains (`example.com` covers subdomains). Hostnames are resolved and every address must be in scope and outside the exclusions. Networks must be fully inside scope. No scope defined means everything is blocked. Domains that resolve outside your listed networks (CDNs) raise a warning. Names are re-resolved just before launch and blocked if they moved out of scope. Runs are also blocked outside the engagement's `--start`/`--end` dates. |
 | **Validation** | Typed parameters only. Targets can't start with `-` or contain shell metacharacters; "extra flags" fields accept an allow-list of flags with validated values (no `-oN`, `-iL`, script paths...). Tools run as argv lists, never through a shell. |
-| **Audit log** | Hash-chained JSONL per engagement: every run (argv, resolved IPs, output hashes), blocked attempt, scope change and finding. `warrant audit --verify` detects edits, deletions and reordering. |
+| **Audit log** | Hash-chained JSONL per engagement: every run (argv, resolved IPs, output hashes), blocked attempt, scope change and finding. `warrant audit --verify` detects edits, deletions, reordering and truncation (the latest hash is anchored in `audit.head`; someone who can edit both files can still rewrite history, so copy the log off-box for delivery). |
 | **Evidence** | Raw output and tool artifacts (nmap XML, nuclei JSONL...) are stored under the engagement and linked from findings. |
 | **Findings** | Parsed from tool output (open and risky ports, NSE vulnerable results, vulners CVEs, nuclei matches, sensitive paths, TLS and header issues). Deduplicated across runs; track status (`open`, `confirmed`, `remediated`, `accepted`, `false_positive`). |
 | **Reports** | HTML (self-contained, fully escaped), Markdown, JSON, CSV (formula-safe), PDF. Includes scope, findings, tools used and audit-chain status. |

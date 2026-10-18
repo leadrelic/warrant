@@ -5,7 +5,7 @@ import json
 import re
 import threading
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
@@ -99,6 +99,12 @@ class Engagement:
                 raise EngagementError(f"Engagement '{name}' already exists")
             for item in eng.includes + eng.excludes:
                 validate_scope_item(item)
+            for d in (eng.start_date, eng.end_date):
+                if d:
+                    try:
+                        date.fromisoformat(d)
+                    except ValueError:
+                        raise EngagementError(f"dates must be YYYY-MM-DD, got {d!r}") from None
             eng.save()
             eng.audit("system", "engagement_created", f"client={eng.client!r} tester={eng.tester!r}")
             return eng
@@ -112,6 +118,19 @@ class Engagement:
         d = json.loads(path.read_text(encoding="utf-8"))
         findings = [Finding(**f) for f in d.pop("findings", [])]
         return cls(findings=findings, **d)
+
+    # ---------- authorization window ----------
+    def window_error(self, today: Optional[date] = None) -> Optional[str]:
+        """Reason runs are not allowed right now, or None. Dates are inclusive (YYYY-MM-DD)."""
+        today = today or date.today()
+        try:
+            if self.start_date and today < date.fromisoformat(self.start_date):
+                return f"engagement starts {self.start_date}"
+            if self.end_date and today > date.fromisoformat(self.end_date):
+                return f"engagement ended {self.end_date}"
+        except ValueError:
+            return f"invalid engagement dates ({self.start_date!r} - {self.end_date!r})"
+        return None
 
     # ---------- scope ----------
     @property
@@ -244,7 +263,12 @@ class Engagement:
             paths.secure_mkdir(self.dir)
             with open(self.audit_path, "a", encoding="utf-8", newline="\n") as f:
                 f.write(json.dumps(rec, sort_keys=True) + "\n")
+            paths.write_private(self.head_path, json.dumps({"seq": rec["seq"], "hash": rec["hash"]}))
             return rec
+
+    @property
+    def head_path(self) -> Path:
+        return self.dir / "audit.head"
 
     def read_audit(self) -> List[dict]:
         if not self.audit_path.exists():
@@ -262,7 +286,14 @@ class Engagement:
             if rec.get("prev") != prev or _chain_hash(body) != rec.get("hash"):
                 return False, f"hash mismatch at record {expected}"
             prev, expected = rec["hash"], expected + 1
-        return True, f"{expected - 1} records, chain intact"
+        n = expected - 1
+        try:
+            head = json.loads(self.head_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return True, f"{n} records, chain intact (no head anchor found)"
+        if (head.get("seq"), head.get("hash")) != (n, prev if n else "0" * 64):
+            return False, f"log truncated or head anchor mismatch (anchor says {head.get('seq')} records, found {n})"
+        return True, f"{n} records, chain intact, head anchored"
 
 
 def _chain_hash(rec: dict) -> str:

@@ -31,7 +31,7 @@ def get_engagement(args, required=True):
 # ---------- command handlers ----------
 def cmd_new(a):
     eng = Engagement.create(a.name, client=a.client, tester=a.tester, description=a.description, end_date=a.end,
-                            includes=[], excludes=[])
+                            start_date=a.start, includes=[], excludes=[])
     for s in a.scope or []:
         eng.add_scope(s)
     for s in a.exclude or []:
@@ -61,6 +61,9 @@ def cmd_use(a):
 def cmd_show(a):
     e = get_engagement(a)
     print(f"{c(e.name, '1')}  client={e.client}  tester={e.tester}  {e.start_date} -> {e.end_date or 'ongoing'}")
+    problem = e.window_error()
+    if problem:
+        print(c(f"Runs are blocked: {problem}", "1;31"))
     print("In scope:  " + (", ".join(e.includes) or c("(none)", "33")))
     print("Excluded:  " + (", ".join(e.excludes) or "(none)"))
     counts = e.finding_counts()
@@ -221,7 +224,8 @@ def build_parser():
     s.add_argument("--client", default="")
     s.add_argument("--tester", default="")
     s.add_argument("--description", default="")
-    s.add_argument("--end", default="")
+    s.add_argument("--start", default="", help="first authorized day, YYYY-MM-DD (default: today)")
+    s.add_argument("--end", default="", help="last authorized day, YYYY-MM-DD; runs are blocked after it")
     s.add_argument("--scope", action="append", help="in-scope IP/CIDR/range/domain (repeatable)")
     s.add_argument("--exclude", action="append", help="excluded target (repeatable)")
     s.set_defaults(fn=cmd_new)

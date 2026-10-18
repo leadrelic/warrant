@@ -137,6 +137,47 @@ class EngagementTests(Home):
             e.add_scope("10.0.0.1; rm -rf /")
 
 
+class GuardTests(Home):
+    def fake(self):
+        return ToolSpec("fake", "Fake", "Test", "", [Param("target", "target")], binary=sys.executable,
+                        build=lambda p, c: [c.binary, "-c", "print('ok')", p["target"]])
+
+    def test_window_enforced(self):
+        from datetime import date, timedelta
+        e = self.make()
+        self.assertIsNone(e.window_error())
+        e.end_date = (date.today() - timedelta(days=1)).isoformat()
+        with self.assertRaises(ScopeViolation) as cm:
+            ToolRunner(e, {"fake": self.fake()}).run("fake", {"target": "127.0.0.1"})
+        self.assertIn("ended", str(cm.exception))
+        e.end_date, e.start_date = "", (date.today() + timedelta(days=2)).isoformat()
+        self.assertIn("starts", e.window_error())
+        with self.assertRaises(EngagementError):
+            Engagement.create("bad", end_date="tomorrow")
+
+    def test_audit_truncation_detected(self):
+        e = self.make()
+        e.add_finding("T", "low")
+        self.assertIn("anchored", e.verify_audit()[1])
+        lines = e.audit_path.read_text(encoding="utf-8").splitlines()
+        e.audit_path.write_text("\n".join(lines[:-2]) + "\n", encoding="utf-8")   # chain still valid, but shorter
+        ok, msg = e.verify_audit()
+        self.assertFalse(ok)
+        self.assertIn("truncated", msg)
+
+    def test_dns_change_between_check_and_launch_is_blocked(self):
+        e = self.make(scope=["10.0.0.0/24"])
+        answers = iter([["10.0.0.5"], ["8.8.8.8"], ["8.8.8.8"]])
+        Engagement.scope = property(lambda self: Scope(self.includes, self.excludes, resolver=lambda h: next(answers)))
+        try:
+            with self.assertRaises(ScopeViolation) as cm:
+                ToolRunner(e, {"fake": self.fake()}).run("fake", {"target": "moving.example"})
+        finally:
+            del Engagement.scope
+            Engagement.scope = property(lambda self: Scope(self.includes, self.excludes, self.allow_unscoped))
+        self.assertIn("8.8.8.8", str(cm.exception) + " ".join(r["detail"] for r in e.read_audit()))
+
+
 class RunnerTests(Home):
     def spec(self, code):
         return ToolSpec("fake", "Fake", "Test", "", [Param("target", "target")], binary=sys.executable,

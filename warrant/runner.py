@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional
 
 from .engagement import Engagement
+from .scope import Decision
 from .validate import Param, ValidationError, validate_params
 
 
@@ -118,6 +119,10 @@ class ToolRunner:
         clean, targets = validate_params(spec.params, raw)
         decisions = []
         if self.eng is not None:
+            problem = self.eng.window_error()
+            if problem:
+                self.eng.audit("scope", "BLOCKED", f"{tool_id} outside engagement window: {problem}")
+                raise ScopeViolation([Decision(False, problem, "*")])
             scope = self.eng.scope
             decisions = [scope.check(t) for t in targets]
             denied = [d for d in decisions if not d.allowed]
@@ -135,6 +140,7 @@ class ToolRunner:
             raise ToolMissing(f"'{spec.binary}' is not installed. {spec.install}".strip())
 
         emit = on_line or (lambda s: None)
+        self._recheck_dns(tool_id, targets, decisions, emit)
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         evidence_dir = self.eng.evidence_dir if self.eng else Path(tempfile.mkdtemp(prefix="warrant_"))
         ctx = RunContext(spec, self.eng, evidence_dir, stamp, cancel)
@@ -190,6 +196,22 @@ class ToolRunner:
             digests = {Path(p).name: _sha256(p) for p in ([out_file] if out_file else []) + list(ctx.paths.values()) if p and Path(p).exists()}
             self.eng.audit("tool", "run_end", f"{spec.id} status={status} rc={rc} findings={len(findings)} sha256={digests}")
         return RunResult(spec.id, status, rc, time.time() - started, str(out_file) if out_file else None, findings, warnings)
+
+    def _recheck_dns(self, tool_id, targets, decisions, emit):
+        """Re-resolve hostnames right before launch: a name that moved out of scope since the first check is blocked."""
+        if self.eng is None:
+            return
+        scope = self.eng.scope
+        for first in decisions:
+            if not first.resolved:
+                continue
+            again = scope.check(first.target)
+            if not again.allowed:
+                self.eng.audit("scope", "BLOCKED", f"{tool_id} {first.target} changed resolution: {again.reason} {again.resolved}")
+                raise ScopeViolation([again])
+            if set(again.resolved) != set(first.resolved):
+                emit(f"[!] {first.target} now resolves to {', '.join(again.resolved)} (was {', '.join(first.resolved)}); still in scope")
+                first.resolved = again.resolved
 
     def _exec(self, argv, spec, lines, emit, cancel):
         kwargs = {}
